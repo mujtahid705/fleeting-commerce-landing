@@ -57,13 +57,17 @@ export default function Hero() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="group">
-                Start Free Trial
+              <Button size="lg" className="group inline-flex items-center">
+                <span>Start Free Trial</span>
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="secondary" size="lg" className="group">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="group inline-flex items-center"
+              >
                 <Play className="mr-2 w-5 h-5" />
-                Watch Demo
+                <span>Watch Demo</span>
               </Button>
             </div>
 

@@ -80,9 +80,9 @@ export default function CTA() {
             >
               <Button
                 size="lg"
-                className="bg-white text-primary hover:bg-gray-100 hover:shadow-2xl group animate-pulse-glow"
+                className="!bg-white !text-primary hover:!bg-gray-100 hover:shadow-2xl group animate-pulse-glow inline-flex items-center"
               >
-                Start Your Free Trial
+                <span>Start Your Free Trial</span>
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </motion.div>

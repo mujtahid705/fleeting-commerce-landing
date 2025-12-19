@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Zap } from "lucide-react";
+import Link from "next/link";
 import Container from "../ui/Container";
 import Button from "../ui/Button";
 
@@ -61,10 +62,14 @@ export default function Navbar() {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="outline" size="sm">
-              Sign In
-            </Button>
-            <Button size="sm">Get Started</Button>
+            <Link href="/login">
+              <Button variant="outline" size="sm">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button size="sm">Get Started</Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -100,10 +105,16 @@ export default function Navbar() {
                   </a>
                 ))}
                 <div className="flex flex-col gap-2 pt-4 border-t border-gray-200">
-                  <Button variant="outline" size="sm">
-                    Sign In
-                  </Button>
-                  <Button size="sm">Get Started</Button>
+                  <Link href="/login">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button size="sm" className="w-full">
+                      Get Started
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </Container>
