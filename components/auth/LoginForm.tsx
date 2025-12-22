@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { Mail, Lock, Loader2, Zap, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
@@ -14,6 +15,7 @@ interface FormErrors {
 }
 
 export default function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
@@ -50,10 +52,8 @@ export default function LoginForm() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // TODO: Replace with actual auth logic
-      console.log("Login attempt:", { email, password });
-
-      // Simulate success - redirect would happen here
+      // Redirect to plans page
+      router.push("/plans");
     } catch {
       setErrors({
         general: "Something went wrong. Please try again.",

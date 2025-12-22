@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Mail,
   Lock,
@@ -31,6 +32,7 @@ const passwordRequirements = [
 ];
 
 export default function SignupForm() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -86,10 +88,8 @@ export default function SignupForm() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // TODO: Replace with actual auth logic
-      console.log("Signup attempt:", { name, email, password });
-
-      // Simulate success - redirect would happen here
+      // Redirect to plans page
+      router.push("/plans");
     } catch {
       setErrors({
         general: "Something went wrong. Please try again.",
