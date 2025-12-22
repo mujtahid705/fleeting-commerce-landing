@@ -81,8 +81,7 @@ export default function PlansPage() {
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId);
-    // Placeholder for actual checkout/registration logic
-    console.log(`Selected plan: ${planId}`);
+    router.push("/dashboard");
   };
 
   return (
