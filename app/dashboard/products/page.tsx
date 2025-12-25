@@ -210,7 +210,8 @@ export default function ProductsPage() {
               Filter
               {(selectedCategoryFilter || selectedSubCategoryFilter) && (
                 <span className="px-1.5 py-0.5 bg-primary text-white text-xs rounded-full">
-                  {(selectedCategoryFilter ? 1 : 0) + (selectedSubCategoryFilter ? 1 : 0)}
+                  {(selectedCategoryFilter ? 1 : 0) +
+                    (selectedSubCategoryFilter ? 1 : 0)}
                 </span>
               )}
             </button>
@@ -277,41 +278,42 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Subcategory Filter - Only show when category is selected */}
-                {selectedCategoryFilter && filteredSubCategoriesForFilter.length > 0 && (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-foreground">
-                        Subcategory
-                      </span>
-                      {selectedSubCategoryFilter && (
-                        <button
-                          onClick={() => setSelectedSubCategoryFilter(null)}
-                          className="text-xs text-primary hover:underline"
-                        >
-                          Clear
-                        </button>
-                      )}
+                {selectedCategoryFilter &&
+                  filteredSubCategoriesForFilter.length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-foreground">
+                          Subcategory
+                        </span>
+                        {selectedSubCategoryFilter && (
+                          <button
+                            onClick={() => setSelectedSubCategoryFilter(null)}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                      <div className="space-y-1 max-h-40 overflow-y-auto">
+                        {filteredSubCategoriesForFilter.map((subCategory) => (
+                          <button
+                            key={subCategory.id}
+                            onClick={() => {
+                              setSelectedSubCategoryFilter(subCategory.id);
+                              setShowFilters(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                              selectedSubCategoryFilter === subCategory.id
+                                ? "bg-primary text-white"
+                                : "hover:bg-gray-50 text-foreground"
+                            }`}
+                          >
+                            {subCategory.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-1 max-h-40 overflow-y-auto">
-                      {filteredSubCategoriesForFilter.map((subCategory) => (
-                        <button
-                          key={subCategory.id}
-                          onClick={() => {
-                            setSelectedSubCategoryFilter(subCategory.id);
-                            setShowFilters(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                            selectedSubCategoryFilter === subCategory.id
-                              ? "bg-primary text-white"
-                              : "hover:bg-gray-50 text-foreground"
-                          }`}
-                        >
-                          {subCategory.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
           </div>
@@ -340,24 +342,30 @@ export default function ProductsPage() {
               <Package size={32} className="text-muted" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              {searchQuery || selectedCategoryFilter || selectedSubCategoryFilter
+              {searchQuery ||
+              selectedCategoryFilter ||
+              selectedSubCategoryFilter
                 ? "No products found"
                 : "No products yet"}
             </h3>
             <p className="text-muted text-sm mb-4 max-w-sm">
-              {searchQuery || selectedCategoryFilter || selectedSubCategoryFilter
+              {searchQuery ||
+              selectedCategoryFilter ||
+              selectedSubCategoryFilter
                 ? "Try adjusting your search or filter to find what you're looking for."
                 : "Get started by adding your first product to the catalog."}
             </p>
-            {!searchQuery && !selectedCategoryFilter && !selectedSubCategoryFilter && (
-              <Button
-                onClick={handleAddProduct}
-                className="flex items-center gap-2"
-              >
-                <Plus size={18} />
-                Add Product
-              </Button>
-            )}
+            {!searchQuery &&
+              !selectedCategoryFilter &&
+              !selectedSubCategoryFilter && (
+                <Button
+                  onClick={handleAddProduct}
+                  className="flex items-center gap-2"
+                >
+                  <Plus size={18} />
+                  Add Product
+                </Button>
+              )}
           </div>
         </PageCard>
       ) : (
@@ -393,7 +401,10 @@ export default function ProductsPage() {
                       {product.category?.name || "Uncategorized"}
                     </p>
                   </div>
-                  <div className="relative group" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="relative group"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
                       <MoreVertical size={16} className="text-muted" />
                     </button>
@@ -490,124 +501,129 @@ export default function ProductsPage() {
               transition={{ duration: 0.2 }}
               className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden max-h-[90vh] overflow-y-auto"
             >
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-foreground">
-                Product Details
-              </h2>
-              <button
-                onClick={() => setIsViewModalOpen(false)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <X size={20} className="text-muted" />
-              </button>
-            </div>
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Product Details
+                </h2>
+                <button
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <X size={20} className="text-muted" />
+                </button>
+              </div>
 
-            {/* Content */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Images */}
-                <div>
-                  <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden mb-4">
-                    {viewProduct.images && viewProduct.images.length > 0 ? (
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${viewProduct.images[selectedImageIndex]?.imageUrl || viewProduct.images[0].imageUrl}`}
-                        alt={viewProduct.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package size={64} className="text-gray-300" />
-                      </div>
-                    )}
-                  </div>
-                  {viewProduct.images && viewProduct.images.length > 1 && (
-                    <div className="grid grid-cols-4 gap-2">
-                      {viewProduct.images.slice(0, 4).map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedImageIndex(index)}
-                          className={`aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all ${
-                            selectedImageIndex === index
-                              ? "border-primary ring-2 ring-primary/20"
-                              : "border-transparent hover:border-gray-300"
-                          }`}
-                        >
-                          <img
-                            src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${image.imageUrl}`}
-                            alt={`${viewProduct.title} ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Details */}
-                <div className="space-y-4">
+              {/* Content */}
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Images */}
                   <div>
-                    <h3 className="text-xl font-bold text-foreground">
-                      {viewProduct.title}
-                    </h3>
-                    <p className="text-2xl font-bold text-primary mt-1">
-                      {formatPrice(viewProduct.price)}
-                    </p>
-                  </div>
-
-                  <p className="text-muted text-sm leading-relaxed">
-                    {viewProduct.description}
-                  </p>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted">Category:</span>
-                      <span className="text-sm font-medium text-foreground">
-                        {viewProduct.category?.name || "Uncategorized"}
-                      </span>
+                    <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden mb-4">
+                      {viewProduct.images && viewProduct.images.length > 0 ? (
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${
+                            viewProduct.images[selectedImageIndex]?.imageUrl ||
+                            viewProduct.images[0].imageUrl
+                          }`}
+                          alt={viewProduct.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package size={64} className="text-gray-300" />
+                        </div>
+                      )}
                     </div>
-                    {viewProduct.subCategory && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted">Subcategory:</span>
-                        <span className="text-sm font-medium text-foreground">
-                          {viewProduct.subCategory.name}
-                        </span>
-                      </div>
-                    )}
-                    {viewProduct.brand && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted">Brand:</span>
-                        <span className="text-sm font-medium text-foreground">
-                          {viewProduct.brand}
-                        </span>
+                    {viewProduct.images && viewProduct.images.length > 1 && (
+                      <div className="grid grid-cols-4 gap-2">
+                        {viewProduct.images.slice(0, 4).map((image, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedImageIndex(index)}
+                            className={`aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all ${
+                              selectedImageIndex === index
+                                ? "border-primary ring-2 ring-primary/20"
+                                : "border-transparent hover:border-gray-300"
+                            }`}
+                          >
+                            <img
+                              src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${image.imageUrl}`}
+                              alt={`${viewProduct.title} ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      className="flex-1 flex items-center justify-center gap-2"
-                      onClick={() => {
-                        setIsViewModalOpen(false);
-                        handleEditProduct(viewProduct);
-                      }}
-                    >
-                      <Edit size={16} />
-                      Edit Product
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsViewModalOpen(false)}
-                    >
-                      Close
-                    </Button>
+                  {/* Details */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground">
+                        {viewProduct.title}
+                      </h3>
+                      <p className="text-2xl font-bold text-primary mt-1">
+                        {formatPrice(viewProduct.price)}
+                      </p>
+                    </div>
+
+                    <p className="text-muted text-sm leading-relaxed">
+                      {viewProduct.description}
+                    </p>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted">Category:</span>
+                        <span className="text-sm font-medium text-foreground">
+                          {viewProduct.category?.name || "Uncategorized"}
+                        </span>
+                      </div>
+                      {viewProduct.subCategory && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted">
+                            Subcategory:
+                          </span>
+                          <span className="text-sm font-medium text-foreground">
+                            {viewProduct.subCategory.name}
+                          </span>
+                        </div>
+                      )}
+                      {viewProduct.brand && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted">Brand:</span>
+                          <span className="text-sm font-medium text-foreground">
+                            {viewProduct.brand}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        className="flex-1 flex items-center justify-center gap-2"
+                        onClick={() => {
+                          setIsViewModalOpen(false);
+                          handleEditProduct(viewProduct);
+                        }}
+                      >
+                        <Edit size={16} />
+                        Edit Product
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsViewModalOpen(false)}
+                      >
+                        Close
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       {/* Click outside to close filters */}
