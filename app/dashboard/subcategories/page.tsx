@@ -407,9 +407,7 @@ export default function SubcategoriesPage() {
                         {getCategoryName(subCategory.categoryId)}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted pt-1">
-                        <span>
-                          {subCategory.productsCount || 0} products
-                        </span>
+                        <span>{subCategory.productsCount || 0} products</span>
                       </div>
                       {subCategory.createdAt && (
                         <p className="text-xs text-muted pt-2">

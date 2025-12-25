@@ -38,7 +38,7 @@ export default function DataTable<T extends { id: string | number }>({
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className={`px-6 py-4 text-left text-xs font-semibold text-muted uppercase tracking-wider ${
+                  className={`px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ${
                     column.className || ""
                   }`}
                 >
@@ -52,7 +52,7 @@ export default function DataTable<T extends { id: string | number }>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-6 py-12 text-center text-muted"
+                  className="px-6 py-12 text-center text-gray-500"
                 >
                   {emptyMessage}
                 </td>
@@ -69,7 +69,7 @@ export default function DataTable<T extends { id: string | number }>({
                   {columns.map((column, colIndex) => (
                     <td
                       key={colIndex}
-                      className={`px-6 py-4 text-sm text-foreground ${
+                      className={`px-6 py-4 text-sm text-gray-900 ${
                         column.className || ""
                       }`}
                     >

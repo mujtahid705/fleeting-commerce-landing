@@ -37,8 +37,8 @@ export default function StatCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-muted font-medium">{title}</p>
-          <p className="text-3xl font-bold text-foreground mt-2">{value}</p>
+          <p className="text-sm text-gray-500 font-medium">{title}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
           {change && (
             <span
               className={`inline-block mt-2 text-xs font-medium px-2 py-1 rounded-full ${changeColors[changeType]}`}

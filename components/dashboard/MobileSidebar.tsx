@@ -59,7 +59,7 @@ const navItems = [
     name: "Orders",
     href: "/dashboard/orders",
     icon: ShoppingCart,
-    access: ["SUPER_ADMIN", "TENANT_ADMIN"],
+    access: ["TENANT_ADMIN"],
   },
   {
     name: "Customers",

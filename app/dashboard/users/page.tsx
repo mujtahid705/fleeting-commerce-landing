@@ -12,9 +12,10 @@ import {
   UserCheck,
   UserX,
   Calendar,
+  Shield,
+  Building,
   X,
   Eye,
-  Power,
 } from "lucide-react";
 import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
@@ -23,64 +24,33 @@ import StatCard from "@/components/dashboard/StatCard";
 import Spinner from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import {
-  fetchCustomersByTenant,
-  updateCustomerStatus,
-} from "@/lib/store/slices/customersSlice";
+import { fetchAllUsers } from "@/lib/store/slices/usersSlice";
 import { Customer } from "@/lib/types/customers";
 
-export default function CustomersPage() {
+export default function UsersPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
 
   const { user } = useAppSelector((state) => state.auth);
-  const { customers, isLoading, error } = useAppSelector(
-    (state) => state.customers
-  );
+  const { users, isLoading, error } = useAppSelector((state) => state.users);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
   >("all");
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null
-  );
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
-
-  // Handle status toggle
-  const handleStatusToggle = async (customer: Customer) => {
-    setUpdatingId(customer.id);
-    try {
-      await dispatch(
-        updateCustomerStatus({
-          customerId: customer.id,
-          isActive: !customer.isActive,
-        })
-      ).unwrap();
-      showToast({
-        type: "success",
-        title: customer.isActive
-          ? "Customer deactivated successfully"
-          : "Customer activated successfully",
-      });
-    } catch (err) {
-      showToast({ type: "error", title: err as string });
-    } finally {
-      setUpdatingId(null);
-    }
-  };
+  const [selectedUser, setSelectedUser] = useState<Customer | null>(null);
 
   // Role protection
   useEffect(() => {
-    if (user && user.role !== "TENANT_ADMIN") {
+    if (user && user.role !== "SUPER_ADMIN") {
       router.push("/dashboard");
     }
   }, [user, router]);
 
-  // Fetch customers
+  // Fetch users
   useEffect(() => {
-    dispatch(fetchCustomersByTenant());
+    dispatch(fetchAllUsers());
   }, [dispatch]);
 
   // Error handling
@@ -90,27 +60,27 @@ export default function CustomersPage() {
     }
   }, [error, showToast]);
 
-  // Filter customers
-  const filteredCustomers = customers.filter((customer) => {
+  // Filter users
+  const filteredUsers = users.filter((u) => {
     const matchesSearch =
-      customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.phone?.includes(searchQuery);
+      u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.phone?.includes(searchQuery);
 
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "active" && customer.isActive) ||
-      (statusFilter === "inactive" && !customer.isActive);
+      (statusFilter === "active" && u.isActive) ||
+      (statusFilter === "inactive" && !u.isActive);
 
     return matchesSearch && matchesStatus;
   });
 
   // Stats
-  const totalCustomers = customers.length;
-  const activeCustomers = customers.filter((c) => c.isActive).length;
-  const inactiveCustomers = customers.filter((c) => !c.isActive).length;
-  const recentCustomers = customers.filter((c) => {
-    const createdDate = new Date(c.createdAt);
+  const totalUsers = users.length;
+  const activeUsers = users.filter((u) => u.isActive).length;
+  const inactiveUsers = users.filter((u) => !u.isActive).length;
+  const recentUsers = users.filter((u) => {
+    const createdDate = new Date(u.createdAt);
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     return createdDate >= thirtyDaysAgo;
@@ -120,10 +90,10 @@ export default function CustomersPage() {
   const columns = [
     {
       key: "name" as keyof Customer,
-      header: "Customer",
+      header: "User",
       render: (item: Customer) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold text-sm">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
             {item.name
               ? item.name
                   .split(" ")
@@ -178,36 +148,18 @@ export default function CustomersPage() {
       key: "id" as keyof Customer,
       header: "Actions",
       render: (item: Customer) => (
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setSelectedCustomer(item)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            title="View Details"
-          >
-            <Eye className="w-4 h-4 text-gray-600" />
-          </button>
-          <button
-            onClick={() => handleStatusToggle(item)}
-            disabled={updatingId === item.id}
-            className={`p-2 rounded-lg transition-colors ${
-              item.isActive
-                ? "hover:bg-red-50 text-red-600"
-                : "hover:bg-green-50 text-green-600"
-            } ${updatingId === item.id ? "opacity-50 cursor-wait" : ""}`}
-            title={item.isActive ? "Deactivate Customer" : "Activate Customer"}
-          >
-            {updatingId === item.id ? (
-              <Spinner size="sm" />
-            ) : (
-              <Power className="w-4 h-4" />
-            )}
-          </button>
-        </div>
+        <button
+          onClick={() => setSelectedUser(item)}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          title="View Details"
+        >
+          <Eye className="w-4 h-4 text-gray-600" />
+        </button>
       ),
     },
   ];
 
-  if (isLoading && customers.length === 0) {
+  if (isLoading && users.length === 0) {
     return (
       <div className="flex items-center justify-center h-96">
         <Spinner size="lg" />
@@ -217,39 +169,36 @@ export default function CustomersPage() {
 
   return (
     <>
-      <PageHeader
-        title="Customers"
-        subtitle="Manage your customer relationships"
-      />
+      <PageHeader title="Users" subtitle="Manage all platform users" />
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="Total Customers"
-          value={totalCustomers.toString()}
+          title="Total Users"
+          value={totalUsers.toString()}
           icon={Users}
-          iconColor="from-blue-500 to-cyan-500"
+          iconColor="from-indigo-500 to-purple-500"
           delay={0}
         />
         <StatCard
-          title="Active Customers"
-          value={activeCustomers.toString()}
+          title="Active Users"
+          value={activeUsers.toString()}
           icon={UserCheck}
           iconColor="from-green-500 to-emerald-500"
           delay={0.1}
         />
         <StatCard
-          title="Inactive Customers"
-          value={inactiveCustomers.toString()}
+          title="Inactive Users"
+          value={inactiveUsers.toString()}
           icon={UserX}
           iconColor="from-gray-500 to-slate-500"
           delay={0.2}
         />
         <StatCard
           title="New (30 days)"
-          value={recentCustomers.toString()}
+          value={recentUsers.toString()}
           icon={Calendar}
-          iconColor="from-purple-500 to-pink-500"
+          iconColor="from-blue-500 to-cyan-500"
           delay={0.3}
         />
       </div>
@@ -288,24 +237,24 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* Customers Table */}
+      {/* Users Table */}
       <PageCard noPadding>
         <DataTable
           columns={columns}
-          data={filteredCustomers}
-          emptyMessage="No customers found"
+          data={filteredUsers}
+          emptyMessage="No users found"
         />
       </PageCard>
 
-      {/* Customer Details Modal */}
+      {/* User Details Modal */}
       <AnimatePresence>
-        {selectedCustomer && (
+        {selectedUser && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            onClick={() => setSelectedCustomer(null)}
+            onClick={() => setSelectedUser(null)}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -315,29 +264,29 @@ export default function CustomersPage() {
               className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-primary to-accent p-6 text-white">
+              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-                      {selectedCustomer.name
-                        ? selectedCustomer.name
+                      {selectedUser.name
+                        ? selectedUser.name
                             .split(" ")
                             .map((n) => n[0])
                             .join("")
                             .toUpperCase()
-                        : selectedCustomer.email[0].toUpperCase()}
+                        : selectedUser.email[0].toUpperCase()}
                     </div>
                     <div>
                       <h3 className="text-xl font-bold">
-                        {selectedCustomer.name || "N/A"}
+                        {selectedUser.name || "N/A"}
                       </h3>
                       <p className="text-white/80 text-sm">
-                        {selectedCustomer.email}
+                        {selectedUser.email}
                       </p>
                     </div>
                   </div>
                   <button
-                    onClick={() => setSelectedCustomer(null)}
+                    onClick={() => setSelectedUser(null)}
                     className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                   >
                     <X size={20} />
@@ -349,11 +298,21 @@ export default function CustomersPage() {
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
+                    <Shield className="text-gray-400" size={18} />
+                    <span className="text-sm text-gray-600">User ID</span>
+                  </div>
+                  <span className="font-mono text-xs text-gray-900">
+                    {selectedUser.id.substring(0, 12)}...
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3">
                     <Phone className="text-gray-400" size={18} />
                     <span className="text-sm text-gray-600">Phone</span>
                   </div>
                   <span className="font-medium text-gray-900">
-                    {selectedCustomer.phone || "N/A"}
+                    {selectedUser.phone || "N/A"}
                   </span>
                 </div>
 
@@ -363,7 +322,7 @@ export default function CustomersPage() {
                     <span className="text-sm text-gray-600">Email</span>
                   </div>
                   <span className="font-medium text-gray-900">
-                    {selectedCustomer.email}
+                    {selectedUser.email}
                   </span>
                 </div>
 
@@ -372,28 +331,15 @@ export default function CustomersPage() {
                     <UserCheck className="text-gray-400" size={18} />
                     <span className="text-sm text-gray-600">Status</span>
                   </div>
-                  <button
-                    onClick={() => handleStatusToggle(selectedCustomer)}
-                    disabled={updatingId === selectedCustomer.id}
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      selectedCustomer.isActive
-                        ? "bg-red-100 text-red-700 hover:bg-red-200"
-                        : "bg-green-100 text-green-700 hover:bg-green-200"
-                    } ${
-                      updatingId === selectedCustomer.id
-                        ? "opacity-50 cursor-wait"
-                        : ""
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                      selectedUser.isActive
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {updatingId === selectedCustomer.id ? (
-                      <Spinner size="sm" />
-                    ) : selectedCustomer.isActive ? (
-                      <UserX size={14} />
-                    ) : (
-                      <UserCheck size={14} />
-                    )}
-                    {selectedCustomer.isActive ? "Deactivate" : "Activate"}
-                  </button>
+                    {selectedUser.isActive ? "Active" : "Inactive"}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
@@ -402,17 +348,17 @@ export default function CustomersPage() {
                     <span className="text-sm text-gray-600">Joined</span>
                   </div>
                   <span className="font-medium text-gray-900">
-                    {new Date(selectedCustomer.createdAt).toLocaleDateString()}
+                    {new Date(selectedUser.createdAt).toLocaleDateString()}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
-                    <Calendar className="text-gray-400" size={18} />
+                    <Building className="text-gray-400" size={18} />
                     <span className="text-sm text-gray-600">Last Updated</span>
                   </div>
                   <span className="font-medium text-gray-900">
-                    {new Date(selectedCustomer.updatedAt).toLocaleDateString()}
+                    {new Date(selectedUser.updatedAt).toLocaleDateString()}
                   </span>
                 </div>
               </div>
@@ -420,7 +366,7 @@ export default function CustomersPage() {
               {/* Footer */}
               <div className="p-6 border-t border-gray-100">
                 <button
-                  onClick={() => setSelectedCustomer(null)}
+                  onClick={() => setSelectedUser(null)}
                   className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
                 >
                   Close

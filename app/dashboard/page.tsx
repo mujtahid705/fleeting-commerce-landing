@@ -19,45 +19,45 @@ const recentOrders = [
   {
     id: "ORD001",
     customer: "Sarah Johnson",
-    amount: "$250.00",
+    amount: "৳250.00",
     status: "Completed",
     date: "Dec 22, 2025",
   },
   {
     id: "ORD002",
     customer: "Mike Chen",
-    amount: "$189.50",
+    amount: "৳189.50",
     status: "Processing",
     date: "Dec 22, 2025",
   },
   {
     id: "ORD003",
     customer: "Emily Davis",
-    amount: "$420.00",
+    amount: "৳420.00",
     status: "Pending",
     date: "Dec 21, 2025",
   },
   {
     id: "ORD004",
     customer: "James Wilson",
-    amount: "$95.00",
+    amount: "৳95.00",
     status: "Completed",
     date: "Dec 21, 2025",
   },
   {
     id: "ORD005",
     customer: "Lisa Brown",
-    amount: "$320.75",
+    amount: "৳320.75",
     status: "Shipped",
     date: "Dec 20, 2025",
   },
 ];
 
 const topProducts = [
-  { id: 1, name: "Premium Headphones", sales: 234, revenue: "$11,700" },
-  { id: 2, name: "Wireless Keyboard", sales: 189, revenue: "$5,670" },
-  { id: 3, name: "Smart Watch Pro", sales: 156, revenue: "$23,400" },
-  { id: 4, name: "USB-C Hub", sales: 142, revenue: "$4,260" },
+  { id: 1, name: "Premium Headphones", sales: 234, revenue: "৳11,700" },
+  { id: 2, name: "Wireless Keyboard", sales: 189, revenue: "৳5,670" },
+  { id: 3, name: "Smart Watch Pro", sales: 156, revenue: "৳23,400" },
+  { id: 4, name: "USB-C Hub", sales: 142, revenue: "৳4,260" },
 ];
 
 const orderColumns = [
@@ -97,7 +97,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Revenue"
-          value="$45,231"
+          value="৳45,231"
           change="+12.5% from last month"
           changeType="positive"
           icon={DollarSign}

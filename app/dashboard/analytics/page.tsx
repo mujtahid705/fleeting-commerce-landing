@@ -14,11 +14,11 @@ import PageCard from "@/components/dashboard/PageCard";
 import StatCard from "@/components/dashboard/StatCard";
 
 const topProducts = [
-  { name: "Premium Headphones", sales: 234, revenue: "$11,700", growth: 15 },
-  { name: "Smart Watch Pro", sales: 189, revenue: "$56,700", growth: 22 },
-  { name: "Wireless Keyboard", sales: 156, revenue: "$4,680", growth: -5 },
-  { name: "USB-C Hub", sales: 142, revenue: "$4,260", growth: 8 },
-  { name: "Bluetooth Speaker", sales: 128, revenue: "$10,240", growth: 12 },
+  { name: "Premium Headphones", sales: 234, revenue: "৳11,700", growth: 15 },
+  { name: "Smart Watch Pro", sales: 189, revenue: "৳56,700", growth: 22 },
+  { name: "Wireless Keyboard", sales: 156, revenue: "৳4,680", growth: -5 },
+  { name: "USB-C Hub", sales: 142, revenue: "৳4,260", growth: 8 },
+  { name: "Bluetooth Speaker", sales: 128, revenue: "৳10,240", growth: 12 },
 ];
 
 const trafficSources = [
@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Revenue"
-          value="$124,592"
+          value="৳124,592"
           change="+18.2% vs last month"
           changeType="positive"
           icon={DollarSign}

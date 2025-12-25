@@ -136,7 +136,7 @@ export default function InventoryFormModal({
               <option value="">Select a product...</option>
               {availableProducts.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.title} - ${product.price}
+                  {product.title} - ৳{product.price}
                 </option>
               ))}
             </select>

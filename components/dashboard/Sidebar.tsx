@@ -20,6 +20,8 @@ import {
   Route,
   Component,
   Ungroup,
+  Shield,
+  UserCog,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { logoutUser } from "@/lib/store/slices/authSlice";
@@ -60,7 +62,7 @@ const navItems = [
     name: "Orders",
     href: "/dashboard/orders",
     icon: ShoppingCart,
-    access: ["SUPER_ADMIN", "TENANT_ADMIN"],
+    access: ["TENANT_ADMIN"],
   },
   {
     name: "Customers",
@@ -97,6 +99,18 @@ const navItems = [
     href: "/dashboard/offers",
     icon: Tag,
     access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Team Admins",
+    href: "/dashboard/admins",
+    icon: UserCog,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Super Admins",
+    href: "/dashboard/super-admins",
+    icon: Shield,
+    access: ["SUPER_ADMIN"],
   },
   {
     name: "Settings",
