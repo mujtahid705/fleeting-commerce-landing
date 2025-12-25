@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Search, Menu } from "lucide-react";
+import { Bell, Menu, Store } from "lucide-react";
 import Sidebar from "./Sidebar";
 import MobileSidebar from "./MobileSidebar";
+import { useAppSelector } from "@/lib/store/hooks";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { tenant, user } = useAppSelector((state) => state.auth);
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -45,20 +47,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Menu size={24} className="text-foreground" />
             </button>
 
-            {/* Search */}
-            <div className="hidden md:flex items-center gap-3 flex-1 max-w-md">
-              <div className="relative w-full">
-                <Search
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
-                />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-100 border-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-sm"
-                />
+            {/* Tenant/Store Name */}
+            {tenant?.name && (
+              <div className="hidden md:flex items-center gap-3 flex-1">
+                <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/10">
+                  <Store size={18} className="text-primary" />
+                  <span className="text-sm font-semibold text-foreground">
+                    {tenant.name}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Show user role if no tenant (for super admin) */}
+            {!tenant?.name && user?.role === "SUPER_ADMIN" && (
+              <div className="hidden md:flex items-center gap-3 flex-1">
+                <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500/5 to-purple-500/5 border border-violet-500/10">
+                  <span className="text-sm font-semibold text-foreground">
+                    Super Admin Panel
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex items-center gap-2">

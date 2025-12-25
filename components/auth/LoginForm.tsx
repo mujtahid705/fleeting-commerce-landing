@@ -213,7 +213,7 @@ export default function LoginForm() {
       </form>
 
       {/* Divider */}
-      <div className="relative my-8">
+      {/* <div className="relative my-8">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-gray-200" />
         </div>
@@ -222,10 +222,10 @@ export default function LoginForm() {
             Or continue with
           </span>
         </div>
-      </div>
+      </div> */}
 
       {/* Social Login */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* <div className="grid grid-cols-2 gap-4">
         <button
           type="button"
           disabled={isLoading}
@@ -262,7 +262,7 @@ export default function LoginForm() {
           </svg>
           <span className="text-sm font-medium">GitHub</span>
         </button>
-      </div>
+      </div> */}
 
       {/* Sign Up Link */}
       <p className="mt-8 text-center text-muted">

@@ -6,6 +6,8 @@ import {
   LoginResponse,
   ValidateSessionResponse,
   User,
+  RegisterTenantAdminRequest,
+  RegisterTenantAdminResponse,
 } from "@/lib/types/auth";
 
 const initialState: AuthState = {
@@ -88,6 +90,35 @@ export const logoutUser = createAsyncThunk("auth/logout", async () => {
   return null;
 });
 
+// Register Tenant Admin
+export const registerTenantAdmin = createAsyncThunk<
+  RegisterTenantAdminResponse,
+  RegisterTenantAdminRequest,
+  { rejectValue: string }
+>("auth/registerTenantAdmin", async (data, { rejectWithValue }) => {
+  try {
+    const response = await api.post<RegisterTenantAdminResponse>(
+      "/auth/register/tenant-admin-with-tenant",
+      data
+    );
+    return response.data;
+  } catch (error: unknown) {
+    const err = error as {
+      response?: { data?: { message?: string }; status?: number };
+    };
+
+    if (err.response?.status === 400) {
+      return rejectWithValue(
+        err.response?.data?.message || "Email has already been taken."
+      );
+    }
+
+    return rejectWithValue(
+      err.response?.data?.message || "Registration failed. Please try again."
+    );
+  }
+});
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -163,6 +194,19 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.sessionValidated = false;
         state.error = null;
+      })
+      // Register Tenant Admin
+      .addCase(registerTenantAdmin.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerTenantAdmin.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(registerTenantAdmin.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || "Registration failed";
       });
   },
 });

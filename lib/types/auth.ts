@@ -75,6 +75,19 @@ export interface LoginResponse {
   user: User;
 }
 
+export interface RegisterTenantAdminRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  tenantName: string;
+}
+
+export interface RegisterTenantAdminResponse {
+  message: string;
+  data: User;
+}
+
 export interface ValidateSessionResponse {
   message: string;
   data: SessionData;

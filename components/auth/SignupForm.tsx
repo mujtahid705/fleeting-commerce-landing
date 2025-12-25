@@ -1,26 +1,37 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   Mail,
   Lock,
   User,
-  Loader2,
   Zap,
   CheckCircle,
   ArrowLeft,
+  Phone,
+  Store,
 } from "lucide-react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { ButtonSpinner } from "@/components/ui/Spinner";
+import { useToast } from "@/components/ui/Toast";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import {
+  registerTenantAdmin,
+  loginUser,
+  clearError,
+} from "@/lib/store/slices/authSlice";
 
 interface FormErrors {
   name?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
+  phone?: string;
+  storeName?: string;
   general?: string;
 }
 
@@ -33,13 +44,33 @@ const passwordRequirements = [
 
 export default function SignupForm() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { showToast } = useToast();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [storeName, setStoreName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [acceptTerms, setAcceptTerms] = useState(false);
+
+  const { isLoading, error } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      showToast({
+        type: "error",
+        title: "Registration Failed",
+        message: error,
+      });
+    }
+  }, [error, showToast]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -54,6 +85,18 @@ export default function SignupForm() {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Please enter a valid email";
+    }
+
+    if (!phone) {
+      newErrors.phone = "Phone number is required";
+    } else if (!/^\+?[0-9]{10,15}$/.test(phone.replace(/\s/g, ""))) {
+      newErrors.phone = "Please enter a valid phone number";
+    }
+
+    if (!storeName.trim()) {
+      newErrors.storeName = "Store name is required";
+    } else if (storeName.trim().length < 2) {
+      newErrors.storeName = "Store name must be at least 2 characters";
     }
 
     if (!password) {
@@ -72,30 +115,38 @@ export default function SignupForm() {
       newErrors.general = "You must accept the terms and conditions";
     }
 
-    setErrors(newErrors);
+    setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
-    setIsLoading(true);
-    setErrors({});
+    const result = await dispatch(
+      registerTenantAdmin({
+        name: name.trim(),
+        email,
+        password,
+        phone: phone.replace(/\s/g, ""),
+        tenantName: storeName.trim(),
+      })
+    );
 
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Redirect to plans page
-      router.push("/plans");
-    } catch {
-      setErrors({
-        general: "Something went wrong. Please try again.",
+    if (registerTenantAdmin.fulfilled.match(result)) {
+      showToast({
+        type: "success",
+        title: "Account created!",
+        message: "Please sign in to continue.",
       });
-    } finally {
-      setIsLoading(false);
+
+      const loginResult = await dispatch(loginUser({ email, password }));
+
+      if (loginUser.fulfilled.match(loginResult)) {
+        router.push("/plans");
+      } else {
+        router.push("/login");
+      }
     }
   };
 
@@ -135,13 +186,13 @@ export default function SignupForm() {
       </div>
 
       {/* Error Alert */}
-      {errors.general && (
+      {formErrors.general && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm"
         >
-          {errors.general}
+          {formErrors.general}
         </motion.div>
       )}
 
@@ -153,7 +204,7 @@ export default function SignupForm() {
           placeholder="John Doe"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          error={errors.name}
+          error={formErrors.name}
           icon={<User size={20} />}
           disabled={isLoading}
         />
@@ -164,8 +215,30 @@ export default function SignupForm() {
           placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          error={errors.email}
+          error={formErrors.email}
           icon={<Mail size={20} />}
+          disabled={isLoading}
+        />
+
+        <Input
+          label="Phone Number"
+          type="tel"
+          placeholder="+8801XXXXXXXXX"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          error={formErrors.phone}
+          icon={<Phone size={20} />}
+          disabled={isLoading}
+        />
+
+        <Input
+          label="Store Name"
+          type="text"
+          placeholder="My Awesome Store"
+          value={storeName}
+          onChange={(e) => setStoreName(e.target.value)}
+          error={formErrors.storeName}
+          icon={<Store size={20} />}
           disabled={isLoading}
         />
 
@@ -176,7 +249,7 @@ export default function SignupForm() {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            error={errors.password}
+            error={formErrors.password}
             icon={<Lock size={20} />}
             disabled={isLoading}
           />
@@ -213,7 +286,7 @@ export default function SignupForm() {
           placeholder="••••••••"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          error={errors.confirmPassword}
+          error={formErrors.confirmPassword}
           icon={<Lock size={20} />}
           disabled={isLoading}
         />
@@ -248,7 +321,7 @@ export default function SignupForm() {
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <ButtonSpinner />
               Creating account...
             </>
           ) : (
@@ -258,7 +331,7 @@ export default function SignupForm() {
       </form>
 
       {/* Divider */}
-      <div className="relative my-8">
+      {/* <div className="relative my-8">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-gray-200" />
         </div>
@@ -267,10 +340,10 @@ export default function SignupForm() {
             Or continue with
           </span>
         </div>
-      </div>
+      </div> */}
 
       {/* Social Login */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* <div className="grid grid-cols-2 gap-4">
         <button
           type="button"
           className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 hover:bg-secondary transition-colors"
@@ -305,7 +378,7 @@ export default function SignupForm() {
           </svg>
           <span className="text-sm font-medium">GitHub</span>
         </button>
-      </div>
+      </div> */}
 
       {/* Sign In Link */}
       <p className="mt-8 text-center text-muted">
