@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -18,6 +18,9 @@ import {
   Zap,
   LogOut,
 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { logoutUser } from "@/lib/store/slices/authSlice";
+import { useToast } from "@/components/ui/Toast";
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -33,7 +36,30 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { showToast } = useToast();
+  const { user } = useAppSelector((state) => state.auth);
   const [collapsed, setCollapsed] = useState(false);
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    showToast({
+      type: "success",
+      title: "Logged out",
+      message: "You have been successfully logged out.",
+    });
+    router.push("/login");
+  };
+
+  const userInitials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "U";
 
   return (
     <motion.aside
@@ -123,7 +149,7 @@ export default function Sidebar() {
           }`}
         >
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold flex-shrink-0">
-            JD
+            {userInitials}
           </div>
           <AnimatePresence>
             {!collapsed && (
@@ -134,9 +160,11 @@ export default function Sidebar() {
                 className="flex-1 min-w-0"
               >
                 <p className="font-medium text-foreground text-sm truncate">
-                  John Doe
+                  {user?.name || "User"}
                 </p>
-                <p className="text-xs text-muted truncate">john@example.com</p>
+                <p className="text-xs text-muted truncate">
+                  {user?.email || ""}
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -146,6 +174,7 @@ export default function Sidebar() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                onClick={handleLogout}
                 className="p-2 rounded-lg hover:bg-gray-200 transition-colors"
                 title="Logout"
               >
