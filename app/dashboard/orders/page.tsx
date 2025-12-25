@@ -10,7 +10,7 @@ import {
   CheckCircle,
   Truck,
 } from "lucide-react";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
 import DataTable from "@/components/dashboard/DataTable";
 import StatCard from "@/components/dashboard/StatCard";
@@ -158,7 +158,8 @@ export default function OrdersPage() {
   const completedCount = orders.filter((o) => o.status === "Completed").length;
 
   return (
-    <DashboardShell title="Orders" subtitle="View and manage customer orders">
+    <>
+      <PageHeader title="Orders" subtitle="View and manage customer orders" />
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
@@ -228,6 +229,6 @@ export default function OrdersPage() {
           emptyMessage="No orders found"
         />
       </PageCard>
-    </DashboardShell>
+    </>
   );
 }

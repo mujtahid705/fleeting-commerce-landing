@@ -10,7 +10,7 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
 import Button from "@/components/ui/Button";
 
@@ -89,7 +89,8 @@ export default function ProductsPage() {
   );
 
   return (
-    <DashboardShell title="Products" subtitle="Manage your product catalog">
+    <>
+      <PageHeader title="Products" subtitle="Manage your product catalog" />
       {/* Actions Bar */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
@@ -178,6 +179,6 @@ export default function ProductsPage() {
           </PageCard>
         ))}
       </div>
-    </DashboardShell>
+    </>
   );
 }

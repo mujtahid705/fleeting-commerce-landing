@@ -11,7 +11,7 @@ import {
   Mail,
   Save,
 } from "lucide-react";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -35,10 +35,11 @@ export default function SettingsPage() {
   );
 
   return (
-    <DashboardShell
-      title="Settings"
-      subtitle="Manage your store preferences and configurations"
-    >
+    <>
+      <PageHeader
+        title="Settings"
+        subtitle="Manage your store preferences and configurations"
+      />
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar Tabs */}
         <div className="lg:col-span-1">
@@ -382,6 +383,6 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
-    </DashboardShell>
+    </>
   );
 }

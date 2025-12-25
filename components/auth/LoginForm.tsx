@@ -27,6 +27,7 @@ export default function LoginForm() {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const hasValidatedSession = useRef(false);
+  const hasShownSuccessToast = useRef(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,6 +47,7 @@ export default function LoginForm() {
     dispatch(clearError());
     dispatch(resetSessionValidated());
     hasValidatedSession.current = false;
+    hasShownSuccessToast.current = false;
   }, [dispatch]);
 
   // Validate session after login
@@ -58,7 +60,13 @@ export default function LoginForm() {
 
   // Handle navigation after session validation
   useEffect(() => {
-    if (isAuthenticated && sessionValidated && user) {
+    if (
+      isAuthenticated &&
+      sessionValidated &&
+      user &&
+      !hasShownSuccessToast.current
+    ) {
+      hasShownSuccessToast.current = true;
       showToast({
         type: "success",
         title: "Welcome back!",

@@ -12,7 +12,7 @@ import {
   Trash2,
   Copy,
 } from "lucide-react";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
 import StatCard from "@/components/dashboard/StatCard";
 import Button from "@/components/ui/Button";
@@ -99,10 +99,11 @@ export default function OffersPage() {
   const totalUsage = offers.reduce((acc, o) => acc + o.usageCount, 0);
 
   return (
-    <DashboardShell
-      title="Offers & Discounts"
-      subtitle="Create and manage promotional offers"
-    >
+    <>
+      <PageHeader
+        title="Offers & Discounts"
+        subtitle="Create and manage promotional offers"
+      />
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
@@ -243,6 +244,6 @@ export default function OffersPage() {
           </PageCard>
         ))}
       </div>
-    </DashboardShell>
+    </>
   );
 }

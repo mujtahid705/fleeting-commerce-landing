@@ -8,7 +8,7 @@ import {
   Package,
   ArrowUpDown,
 } from "lucide-react";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
 import DataTable from "@/components/dashboard/DataTable";
 import StatCard from "@/components/dashboard/StatCard";
@@ -130,10 +130,11 @@ export default function InventoryPage() {
   const totalItems = inventory.reduce((acc, item) => acc + item.stock, 0);
 
   return (
-    <DashboardShell
-      title="Inventory"
-      subtitle="Track and manage your stock levels"
-    >
+    <>
+      <PageHeader
+        title="Inventory"
+        subtitle="Track and manage your stock levels"
+      />
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
@@ -199,6 +200,6 @@ export default function InventoryPage() {
           emptyMessage="No inventory items found"
         />
       </PageCard>
-    </DashboardShell>
+    </>
   );
 }

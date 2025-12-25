@@ -11,7 +11,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
 import DataTable from "@/components/dashboard/DataTable";
 import StatCard from "@/components/dashboard/StatCard";
@@ -160,10 +160,11 @@ export default function PaymentsPage() {
   const failedCount = payments.filter((p) => p.status === "Failed").length;
 
   return (
-    <DashboardShell
-      title="Payments"
-      subtitle="Track and manage all payment transactions"
-    >
+    <>
+      <PageHeader
+        title="Payments"
+        subtitle="Track and manage all payment transactions"
+      />
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
@@ -236,6 +237,6 @@ export default function PaymentsPage() {
           emptyMessage="No payments found"
         />
       </PageCard>
-    </DashboardShell>
+    </>
   );
 }

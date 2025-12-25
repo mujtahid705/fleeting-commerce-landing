@@ -3,7 +3,11 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { validateSession, logoutUser } from "@/lib/store/slices/authSlice";
+import {
+  validateSession,
+  logoutUser,
+  clearError,
+} from "@/lib/store/slices/authSlice";
 import { PageLoader } from "@/components/ui/Spinner";
 
 const PUBLIC_ROUTES = ["/", "/login", "/signup", "/forgot-password"];
@@ -38,7 +42,8 @@ export default function AuthInitializer({
       const result = await dispatch(validateSession());
 
       if (validateSession.rejected.match(result)) {
-        dispatch(logoutUser());
+        await dispatch(logoutUser());
+        dispatch(clearError()); // Clear error to prevent toast on login page
         if (!isPublicRoute) {
           router.push("/login");
         }

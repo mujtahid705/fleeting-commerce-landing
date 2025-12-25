@@ -9,7 +9,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import PageHeader from "@/components/dashboard/PageHeader";
 import StatCard from "@/components/dashboard/StatCard";
 import PageCard from "@/components/dashboard/PageCard";
 import DataTable from "@/components/dashboard/DataTable";
@@ -88,10 +88,11 @@ const orderColumns = [
 
 export default function DashboardPage() {
   return (
-    <DashboardShell
-      title="Dashboard"
-      subtitle="Welcome back! Here's an overview of your store."
-    >
+    <>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Welcome back! Here's an overview of your store."
+      />
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
@@ -184,6 +185,6 @@ export default function DashboardPage() {
       >
         <DataTable columns={orderColumns} data={recentOrders} />
       </PageCard>
-    </DashboardShell>
+    </>
   );
 }

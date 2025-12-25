@@ -9,7 +9,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
 import StatCard from "@/components/dashboard/StatCard";
 
@@ -59,10 +59,11 @@ const recentActivity = [
 
 export default function AnalyticsPage() {
   return (
-    <DashboardShell
-      title="Analytics"
-      subtitle="Insights and performance metrics for your store"
-    >
+    <>
+      <PageHeader
+        title="Analytics"
+        subtitle="Insights and performance metrics for your store"
+      />
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
@@ -214,6 +215,6 @@ export default function AnalyticsPage() {
           </div>
         </PageCard>
       </div>
-    </DashboardShell>
+    </>
   );
 }

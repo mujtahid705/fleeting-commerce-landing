@@ -17,30 +17,92 @@ import {
   ChevronLeft,
   Zap,
   LogOut,
+  Route,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { logoutUser } from "@/lib/store/slices/authSlice";
 import { useToast } from "@/components/ui/Toast";
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Products", href: "/dashboard/products", icon: Package },
-  { name: "Inventory", href: "/dashboard/inventory", icon: Warehouse },
-  { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
-  { name: "Customers", href: "/dashboard/customers", icon: Users },
-  { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
-  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { name: "Offers", href: "/dashboard/offers", icon: Tag },
-  { name: "Settings", href: "/dashboard/settings", icon: Settings },
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    access: ["SUPER_ADMIN", "TENANT_ADMIN"],
+  },
+  {
+    name: "Products",
+    href: "/dashboard/products",
+    icon: Package,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Inventory",
+    href: "/dashboard/inventory",
+    icon: Warehouse,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Orders",
+    href: "/dashboard/orders",
+    icon: ShoppingCart,
+    access: ["SUPER_ADMIN", "TENANT_ADMIN"],
+  },
+  {
+    name: "Customers",
+    href: "/dashboard/customers",
+    icon: Users,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Users",
+    href: "/dashboard/users",
+    icon: Users,
+    access: ["SUPER_ADMIN"],
+  },
+  {
+    name: "Plans",
+    href: "/dashboard/plans",
+    icon: Route,
+    access: ["SUPER_ADMIN"],
+  },
+  {
+    name: "Payments",
+    href: "/dashboard/payments",
+    icon: CreditCard,
+    access: ["SUPER_ADMIN", "TENANT_ADMIN"],
+  },
+  {
+    name: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
+    access: ["SUPER_ADMIN", "TENANT_ADMIN"],
+  },
+  {
+    name: "Offers",
+    href: "/dashboard/offers",
+    icon: Tag,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    icon: Settings,
+    access: ["SUPER_ADMIN", "TENANT_ADMIN"],
+  },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const { user } = useAppSelector((state) => state.auth);
-  const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -90,7 +152,7 @@ export default function Sidebar() {
           </AnimatePresence>
         </Link>
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={onToggle}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
           <motion.div animate={{ rotate: collapsed ? 180 : 0 }}>
@@ -102,42 +164,44 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 py-4 px-3 overflow-y-auto">
         <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
-                    isActive
-                      ? "bg-primary text-white shadow-lg shadow-primary/30"
-                      : "text-muted hover:bg-gray-100 hover:text-foreground"
-                  }`}
-                >
-                  <item.icon
-                    size={20}
-                    className={`flex-shrink-0 ${
+          {navItems
+            .filter((item) => user?.role && item.access.includes(user.role))
+            .map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
                       isActive
-                        ? "text-white"
-                        : "text-muted group-hover:text-primary"
+                        ? "bg-primary text-white shadow-lg shadow-primary/30"
+                        : "text-muted hover:bg-gray-100 hover:text-foreground"
                     }`}
-                  />
-                  <AnimatePresence>
-                    {!collapsed && (
-                      <motion.span
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: "auto" }}
-                        exit={{ opacity: 0, width: 0 }}
-                        className="font-medium whitespace-nowrap"
-                      >
-                        {item.name}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </Link>
-              </li>
-            );
-          })}
+                  >
+                    <item.icon
+                      size={20}
+                      className={`flex-shrink-0 ${
+                        isActive
+                          ? "text-white"
+                          : "text-muted group-hover:text-primary"
+                      }`}
+                    />
+                    <AnimatePresence>
+                      {!collapsed && (
+                        <motion.span
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: "auto" }}
+                          exit={{ opacity: 0, width: 0 }}
+                          className="font-medium whitespace-nowrap"
+                        >
+                          {item.name}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </Link>
+                </li>
+              );
+            })}
         </ul>
       </nav>
 
