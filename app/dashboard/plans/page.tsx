@@ -48,7 +48,10 @@ export default function PlansPage() {
     useAppSelector((state) => state.adminPlans);
   const { user } = useAppSelector((state) => state.auth);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; plan: Plan | null }>({
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    open: boolean;
+    plan: Plan | null;
+  }>({
     open: false,
     plan: null,
   });
