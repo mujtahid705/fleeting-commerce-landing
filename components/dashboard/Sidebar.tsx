@@ -18,6 +18,8 @@ import {
   Zap,
   LogOut,
   Route,
+  Component,
+  Ungroup,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { logoutUser } from "@/lib/store/slices/authSlice";
@@ -40,6 +42,18 @@ const navItems = [
     name: "Inventory",
     href: "/dashboard/inventory",
     icon: Warehouse,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Categories",
+    href: "/dashboard/categories",
+    icon: Component,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Subcategories",
+    href: "/dashboard/subcategories",
+    icon: Ungroup,
     access: ["TENANT_ADMIN"],
   },
   {

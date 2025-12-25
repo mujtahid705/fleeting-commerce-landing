@@ -1,66 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Zap, Shield, Clock } from "lucide-react";
 import Link from "next/link";
 import Container from "@/components/ui/Container";
 import PlanCard from "@/components/ui/PlanCard";
+import { PageLoader } from "@/components/ui/Spinner";
+import { useToast } from "@/components/ui/Toast";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import {
+  fetchPlans,
+  activateTrial,
+  selectPlan,
+  initiatePayment,
+  setSelectedPlanId,
+  Plan,
+} from "@/lib/store/slices/plansSlice";
 
-const plans = [
-  {
-    id: "trial",
-    name: "Free Trial",
-    price: "$0",
-    period: "14 days",
-    description: "Try all features free for 14 days. No credit card required.",
-    badge: "Try Free",
-    features: [
-      { text: "Up to 50 products", included: true },
-      { text: "Basic analytics", included: true },
-      { text: "Email support", included: true },
-      { text: "Custom domain", included: false },
-      { text: "Priority support", included: false },
-      { text: "Advanced analytics", included: false },
-    ],
-    buttonText: "Start Free Trial",
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "$29",
-    period: "month",
-    description: "Perfect for growing businesses and serious sellers.",
-    badge: "Most Popular",
-    popular: true,
-    features: [
-      { text: "Unlimited products", included: true },
-      { text: "Advanced analytics", included: true },
-      { text: "Priority support", included: true },
-      { text: "Custom domain", included: true },
-      { text: "Multiple payment gateways", included: true },
-      { text: "White-label branding", included: false },
-    ],
-    buttonText: "Get Started",
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "$99",
-    period: "month",
-    description: "For large businesses needing complete control and support.",
-    features: [
-      { text: "Everything in Pro", included: true },
-      { text: "White-label branding", included: true },
-      { text: "Dedicated account manager", included: true },
-      { text: "Custom integrations", included: true },
-      { text: "SLA guarantee", included: true },
-      { text: "API access", included: true },
-    ],
-    buttonText: "Contact Sales",
-  },
-];
+interface PlanFeature {
+  text: string;
+  included: boolean;
+}
 
 const guarantees = [
   {
@@ -75,14 +37,161 @@ const guarantees = [
   },
 ];
 
+// Helper function to generate features from plan data
+const generateFeatures = (plan: Plan, allPlans: Plan[]): PlanFeature[] => {
+  const maxPlan = allPlans.reduce((max, p) => (p.price > max.price ? p : max));
+
+  const features: PlanFeature[] = [
+    {
+      text:
+        plan.maxProducts === -1
+          ? "Unlimited products"
+          : `Up to ${plan.maxProducts} products`,
+      included: true,
+    },
+    {
+      text:
+        plan.maxCategories === -1
+          ? "Unlimited categories"
+          : `Up to ${plan.maxCategories} categories`,
+      included: true,
+    },
+    {
+      text:
+        plan.maxOrders === -1
+          ? "Unlimited orders"
+          : `Up to ${plan.maxOrders} orders/month`,
+      included: plan.maxOrders > 50 || plan.maxOrders === -1,
+    },
+    {
+      text: "Custom domain",
+      included: plan.customDomain,
+    },
+    {
+      text: "Priority support",
+      included: plan.price >= 999,
+    },
+    {
+      text: "Advanced analytics",
+      included: plan.price >= 2499 || plan.price === maxPlan.price,
+    },
+  ];
+
+  return features;
+};
+
+// Helper to determine if a plan should be marked as popular
+const isPopularPlan = (plan: Plan): boolean => {
+  return plan.name.toLowerCase() === "starter";
+};
+
+// Helper to get badge text
+const getBadge = (plan: Plan): string | undefined => {
+  if (plan.trialDays > 0) return "Try Free";
+  if (
+    plan.name.toLowerCase().includes("growth") ||
+    plan.name.toLowerCase().includes("pro")
+  )
+    return "Most Popular";
+  if (plan.name.toLowerCase().includes("enterprise")) return "Best Value";
+  return undefined;
+};
+
+// Helper to get button text
+const getButtonText = (plan: Plan, isAuthenticated: boolean): string => {
+  if (plan.trialDays > 0) return "Start Free Trial";
+  if (plan.name.toLowerCase().includes("enterprise")) return "Contact Sales";
+  return isAuthenticated ? "Select Plan" : "Get Started";
+};
+
 export default function PlansPage() {
   const router = useRouter();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const { showToast } = useToast();
 
-  const handleSelectPlan = (planId: string) => {
-    setSelectedPlan(planId);
-    router.push("/dashboard");
+  const { isAuthenticated, token } = useAppSelector((state) => state.auth);
+  const { plans, isLoading, isSelecting, selectedPlanId, error } =
+    useAppSelector((state) => state.plans);
+
+  // Fetch plans on mount
+  useEffect(() => {
+    dispatch(fetchPlans());
+  }, [dispatch]);
+
+  // Show error toast when error occurs
+  useEffect(() => {
+    if (error) {
+      showToast({
+        type: "error",
+        title: "Error",
+        message: error,
+      });
+    }
+  }, [error, showToast]);
+
+  const handleSelectPlan = async (plan: Plan) => {
+    // If not authenticated, redirect to signup
+    if (!isAuthenticated || !token) {
+      router.push(`/signup?plan=${plan.id}`);
+      return;
+    }
+
+    dispatch(setSelectedPlanId(plan.id));
+
+    // If it's a free trial plan
+    if (plan.trialDays > 0) {
+      const result = await dispatch(activateTrial());
+      if (activateTrial.fulfilled.match(result)) {
+        showToast({
+          type: "success",
+          title: "Trial Activated!",
+          message: `Your ${plan.trialDays}-day free trial has started.`,
+        });
+        router.push("/dashboard");
+      }
+      return;
+    }
+
+    // For paid plans, select the plan first
+    const selectResult = await dispatch(selectPlan(plan.id));
+
+    if (selectPlan.fulfilled.match(selectResult)) {
+      const data = selectResult.payload;
+
+      if (data?.requiresPayment) {
+        // Initiate payment
+        const paymentResult = await dispatch(initiatePayment(plan.id));
+
+        if (initiatePayment.fulfilled.match(paymentResult)) {
+          const paymentData = paymentResult.payload;
+
+          showToast({
+            type: "info",
+            title: "Redirecting to Payment",
+            message: `Please complete payment of ${paymentData.currency} ${paymentData.amount}`,
+          });
+
+          // If there's a gateway URL, redirect to it
+          if (paymentData.gatewayUrl) {
+            window.location.href = paymentData.gatewayUrl;
+          } else {
+            router.push("/dashboard");
+          }
+        }
+      } else {
+        showToast({
+          type: "success",
+          title: "Plan Selected!",
+          message: "Your plan has been activated.",
+        });
+        router.push("/dashboard");
+      }
+    }
   };
+
+  if (isLoading) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,14 +245,50 @@ export default function PlansPage() {
 
           {/* Plans Grid */}
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch mb-16">
-            {plans.map((plan, index) => (
-              <PlanCard
-                key={plan.id}
-                {...plan}
-                onSelect={() => handleSelectPlan(plan.id)}
-                delay={index * 0.1}
-              />
-            ))}
+            {plans.map((plan, index) => {
+              const popular = isPopularPlan(plan);
+              const features = generateFeatures(plan, plans);
+              const badge = popular ? "Most Popular" : getBadge(plan);
+              const isCurrentlySelecting =
+                isSelecting && selectedPlanId === plan.id;
+              const buttonText = isCurrentlySelecting
+                ? "Processing..."
+                : getButtonText(plan, isAuthenticated);
+
+              return (
+                <PlanCard
+                  key={plan.id}
+                  name={plan.name}
+                  price={
+                    plan.price === 0
+                      ? "Free"
+                      : `৳${plan.price.toLocaleString()}`
+                  }
+                  period={
+                    plan.trialDays > 0
+                      ? `${plan.trialDays} days`
+                      : plan.interval === "MONTHLY"
+                      ? "month"
+                      : "year"
+                  }
+                  description={
+                    plan.trialDays > 0
+                      ? `Try all features free for ${plan.trialDays} days. No credit card required.`
+                      : plan.price < 2000
+                      ? "Perfect for small businesses just getting started."
+                      : plan.price < 5000
+                      ? "Great for growing businesses and serious sellers."
+                      : "For large businesses needing complete control and support."
+                  }
+                  features={features}
+                  popular={popular}
+                  badge={badge}
+                  buttonText={buttonText}
+                  onSelect={() => handleSelectPlan(plan)}
+                  delay={index * 0.1}
+                />
+              );
+            })}
           </div>
 
           {/* Guarantees */}

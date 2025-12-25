@@ -8,6 +8,7 @@ interface PageCardProps {
   action?: React.ReactNode;
   className?: string;
   noPadding?: boolean;
+  onClick?: () => void;
 }
 
 export default function PageCard({
@@ -16,11 +17,13 @@ export default function PageCard({
   action,
   className = "",
   noPadding = false,
+  onClick,
 }: PageCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      onClick={onClick}
       className={`bg-white rounded-2xl shadow-sm border border-gray-100 ${className}`}
     >
       {(title || action) && (
