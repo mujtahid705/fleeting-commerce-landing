@@ -8,6 +8,12 @@ import {
   User,
   RegisterTenantAdminRequest,
   RegisterTenantAdminResponse,
+  InitiateRegistrationRequest,
+  InitiateRegistrationResponse,
+  VerifyOtpRequest,
+  VerifyOtpResponse,
+  ResendOtpRequest,
+  ResendOtpResponse,
 } from "@/lib/types/auth";
 
 const initialState: AuthState = {
@@ -119,6 +125,72 @@ export const registerTenantAdmin = createAsyncThunk<
   }
 });
 
+// Initiate Registration (Send OTP)
+export const initiateRegistration = createAsyncThunk<
+  InitiateRegistrationResponse,
+  InitiateRegistrationRequest,
+  { rejectValue: string }
+>("auth/initiateRegistration", async (data, { rejectWithValue }) => {
+  try {
+    const response = await api.post<InitiateRegistrationResponse>(
+      "/auth/register/initiate",
+      data
+    );
+    return response.data;
+  } catch (error: unknown) {
+    const err = error as {
+      response?: { data?: { message?: string }; status?: number };
+    };
+    return rejectWithValue(
+      err.response?.data?.message || "Failed to send OTP. Please try again."
+    );
+  }
+});
+
+// Verify OTP and Complete Registration
+export const verifyOtpAndRegister = createAsyncThunk<
+  VerifyOtpResponse,
+  VerifyOtpRequest,
+  { rejectValue: string }
+>("auth/verifyOtpAndRegister", async (data, { rejectWithValue }) => {
+  try {
+    const response = await api.post<VerifyOtpResponse>(
+      "/auth/register/verify-otp",
+      data
+    );
+    return response.data;
+  } catch (error: unknown) {
+    const err = error as {
+      response?: { data?: { message?: string }; status?: number };
+    };
+    return rejectWithValue(
+      err.response?.data?.message || "Verification failed. Please try again."
+    );
+  }
+});
+
+// Resend OTP
+export const resendOtp = createAsyncThunk<
+  ResendOtpResponse,
+  ResendOtpRequest,
+  { rejectValue: string }
+>("auth/resendOtp", async (data, { rejectWithValue }) => {
+  try {
+    const response = await api.post<ResendOtpResponse>(
+      "/auth/register/resend-otp",
+      data
+    );
+    return response.data;
+  } catch (error: unknown) {
+    const err = error as {
+      response?: { data?: { message?: string }; status?: number };
+    };
+    return rejectWithValue(
+      err.response?.data?.message || "Failed to resend OTP. Please try again."
+    );
+  }
+});
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -207,6 +279,45 @@ const authSlice = createSlice({
       .addCase(registerTenantAdmin.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload || "Registration failed";
+      })
+      // Initiate Registration
+      .addCase(initiateRegistration.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(initiateRegistration.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(initiateRegistration.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || "Failed to send OTP";
+      })
+      // Verify OTP and Register
+      .addCase(verifyOtpAndRegister.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifyOtpAndRegister.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(verifyOtpAndRegister.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || "Verification failed";
+      })
+      // Resend OTP
+      .addCase(resendOtp.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(resendOtp.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(resendOtp.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || "Failed to resend OTP";
       });
   },
 });
