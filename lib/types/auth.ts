@@ -16,6 +16,7 @@ export interface Tenant {
   id: string;
   name: string;
   hasUsedTrial: boolean;
+  brandSetupCompleted: boolean;
   createdAt: string;
 }
 
@@ -75,6 +76,19 @@ export interface LoginResponse {
   user: User;
 }
 
+export interface RegisterTenantAdminRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  tenantName: string;
+}
+
+export interface RegisterTenantAdminResponse {
+  message: string;
+  data: User;
+}
+
 export interface ValidateSessionResponse {
   message: string;
   data: SessionData;
@@ -92,4 +106,46 @@ export interface AuthState {
   isAuthenticated: boolean;
   sessionValidated: boolean;
   error: string | null;
+}
+
+// OTP Registration Types
+export interface InitiateRegistrationRequest {
+  email: string;
+}
+
+export interface InitiateRegistrationResponse {
+  message: string;
+  data: {
+    email: string;
+    expiresIn: string;
+  };
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+  name: string;
+  password: string;
+  phone: string;
+  tenantName: string;
+}
+
+export interface VerifyOtpResponse {
+  message: string;
+  data: {
+    user: User;
+    tenant: Tenant;
+  };
+}
+
+export interface ResendOtpRequest {
+  email: string;
+}
+
+export interface ResendOtpResponse {
+  message: string;
+  data: {
+    email: string;
+    expiresIn: string;
+  };
 }
