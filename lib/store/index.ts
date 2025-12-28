@@ -12,6 +12,7 @@ import customersReducer from "./slices/customersSlice";
 import usersReducer from "./slices/usersSlice";
 import superAdminsReducer from "./slices/superAdminsSlice";
 import tenantAdminsReducer from "./slices/tenantAdminsSlice";
+import brandReducer from "./slices/brandSlice";
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
     users: usersReducer,
     superAdmins: superAdminsReducer,
     tenantAdmins: tenantAdminsReducer,
+    brand: brandReducer,
   },
 });
 
