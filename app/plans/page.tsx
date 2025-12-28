@@ -109,9 +109,17 @@ export default function PlansPage() {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
 
-  const { isAuthenticated, token } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, token, tenant } = useAppSelector(
+    (state) => state.auth
+  );
   const { plans, isLoading, isSelecting, selectedPlanId, error } =
     useAppSelector((state) => state.plans);
+
+  // Filter out trial plans if user has already used trial
+  const hasUsedTrial = tenant?.hasUsedTrial ?? false;
+  const availablePlans = hasUsedTrial
+    ? plans.filter((plan) => plan.trialDays === 0)
+    : plans;
 
   // Fetch plans on mount
   useEffect(() => {
@@ -147,7 +155,7 @@ export default function PlansPage() {
           title: "Trial Activated!",
           message: `Your ${plan.trialDays}-day free trial has started.`,
         });
-        router.push("/dashboard");
+        router.push("/brand-setup");
       }
       return;
     }
@@ -171,11 +179,11 @@ export default function PlansPage() {
             message: `Please complete payment of ${paymentData.currency} ${paymentData.amount}`,
           });
 
-          // If there's a gateway URL, redirect to it
+          // Redirect to SSLCommerz gateway
           if (paymentData.gatewayUrl) {
             window.location.href = paymentData.gatewayUrl;
           } else {
-            router.push("/dashboard");
+            router.push("/brand-setup");
           }
         }
       } else {
@@ -184,7 +192,7 @@ export default function PlansPage() {
           title: "Plan Selected!",
           message: "Your plan has been activated.",
         });
-        router.push("/dashboard");
+        router.push("/brand-setup");
       }
     }
   };
@@ -238,16 +246,17 @@ export default function PlansPage() {
               Choose Your <span className="gradient-text">Perfect Plan</span>
             </h1>
             <p className="text-lg text-muted max-w-2xl mx-auto">
-              Start with a 14-day free trial. No credit card required. Upgrade
-              anytime to unlock more features.
+              {hasUsedTrial
+                ? "Select a plan to continue growing your business with Fleeting Commerce."
+                : "Start with a 14-day free trial. No credit card required. Upgrade anytime to unlock more features."}
             </p>
           </motion.div>
 
           {/* Plans Grid */}
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch mb-16">
-            {plans.map((plan, index) => {
+            {availablePlans.map((plan, index) => {
               const popular = isPopularPlan(plan);
-              const features = generateFeatures(plan, plans);
+              const features = generateFeatures(plan, availablePlans);
               const badge = popular ? "Most Popular" : getBadge(plan);
               const isCurrentlySelecting =
                 isSelecting && selectedPlanId === plan.id;

@@ -16,6 +16,7 @@ export interface Tenant {
   id: string;
   name: string;
   hasUsedTrial: boolean;
+  brandSetupCompleted: boolean;
   createdAt: string;
 }
 

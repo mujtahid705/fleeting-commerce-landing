@@ -205,6 +205,11 @@ const authSlice = createSlice({
     resetSessionValidated: (state) => {
       state.sessionValidated = false;
     },
+    setBrandSetupCompleted: (state) => {
+      if (state.tenant) {
+        state.tenant.brandSetupCompleted = true;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -322,5 +327,10 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, setUser, resetSessionValidated } = authSlice.actions;
+export const {
+  clearError,
+  setUser,
+  resetSessionValidated,
+  setBrandSetupCompleted,
+} = authSlice.actions;
 export default authSlice.reducer;
