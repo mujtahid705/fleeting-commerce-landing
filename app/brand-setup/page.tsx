@@ -26,10 +26,14 @@ import { ButtonSpinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { setBrandSetupCompleted } from "@/lib/store/slices/authSlice";
-import { upsertBrand } from "@/lib/store/slices/brandSlice";
+import {
+  upsertBrand,
+  checkDomainUniqueness,
+} from "@/lib/store/slices/brandSlice";
 import { THEME_PREVIEWS } from "@/lib/types/brand";
 
 interface BrandFormData {
+  domain: string;
   tagline: string;
   description: string;
   theme: number;
@@ -68,13 +72,17 @@ export default function BrandSetupPage() {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const { tenant, user } = useAppSelector((state) => state.auth);
-  const { updateLoading } = useAppSelector((state) => state.brand);
+  const { updateLoading, domainCheckLoading } = useAppSelector(
+    (state) => state.brand
+  );
 
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [domainAvailable, setDomainAvailable] = useState<boolean | null>(null);
 
   const [formData, setFormData] = useState<BrandFormData>({
+    domain: "",
     tagline: "",
     description: "",
     theme: 1,
@@ -89,6 +97,51 @@ export default function BrandSetupPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+    if (field === "domain") {
+      setDomainAvailable(null);
+    }
+  };
+
+  const handleCheckDomain = async () => {
+    if (!formData.domain.trim()) {
+      showToast({
+        type: "error",
+        title: "Domain required",
+        message: "Please enter a domain name",
+      });
+      return;
+    }
+
+    try {
+      const result = await dispatch(
+        checkDomainUniqueness(formData.domain)
+      ).unwrap();
+      setDomainAvailable(result.isAvailable);
+
+      if (result.isAvailable) {
+        showToast({
+          type: "success",
+          title: "Domain available",
+          message: `${formData.domain}.fleetingcommerce.com is available!`,
+        });
+      } else {
+        showToast({
+          type: "error",
+          title: "Domain taken",
+          message: "This domain is already in use. Please choose another.",
+        });
+        setErrors((prev) => ({
+          ...prev,
+          domain: "Domain is already taken",
+        }));
+      }
+    } catch (error: any) {
+      showToast({
+        type: "error",
+        title: "Check failed",
+        message: error || "Failed to check domain availability",
+      });
     }
   };
 
@@ -136,10 +189,37 @@ export default function BrandSetupPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    // Validate required fields
+    const newErrors: Partial<Record<keyof BrandFormData, string>> = {};
+    if (!formData.domain.trim()) {
+      newErrors.domain = "Domain is required";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      showToast({
+        type: "error",
+        title: "Validation Error",
+        message: "Please fill in all required fields",
+      });
+      return;
+    }
+
+    // Warn if domain availability wasn't checked
+    if (domainAvailable === null) {
+      showToast({
+        type: "warning",
+        title: "Domain not checked",
+        message:
+          "Please verify domain availability before submitting to avoid issues.",
+      });
+    }
+
     try {
       await dispatch(
         upsertBrand({
           logo: formData.logo || undefined,
+          domain: formData.domain,
           tagline: formData.tagline || undefined,
           description: formData.description || undefined,
           theme: formData.theme,
@@ -278,6 +358,90 @@ export default function BrandSetupPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Domain Section */}
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Globe size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-foreground">
+                      Store Domain
+                    </h2>
+                    <p className="text-sm text-muted">
+                      Choose your store&apos;s web address
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Domain Name <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Input
+                        type="text"
+                        placeholder="mystore"
+                        value={formData.domain}
+                        onChange={(e) => {
+                          const value = e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, "");
+                          updateField("domain", value);
+                        }}
+                        error={errors.domain}
+                        maxLength={63}
+                      />
+                    </div>
+                    <span className="text-sm text-muted font-medium whitespace-nowrap">
+                      .fleetingcommerce.com
+                    </span>
+                    <Button
+                      type="button"
+                      onClick={handleCheckDomain}
+                      disabled={!formData.domain.trim() || domainCheckLoading}
+                      variant="outline"
+                      size="md"
+                      className="whitespace-nowrap"
+                    >
+                      {domainCheckLoading ? (
+                        <>
+                          <ButtonSpinner />
+                          Checking...
+                        </>
+                      ) : (
+                        "Check"
+                      )}
+                    </Button>
+                  </div>
+                  {!errors.domain && (
+                    <p className="text-xs text-muted mt-2">
+                      {formData.domain ? (
+                        <>
+                          Your store will be available at{" "}
+                          <span className="font-medium text-primary">
+                            {formData.domain}.fleetingcommerce.com
+                          </span>
+                          {domainAvailable === true && (
+                            <span className="ml-2 text-green-600">
+                              ✓ Available
+                            </span>
+                          )}
+                          {domainAvailable === false && (
+                            <span className="ml-2 text-red-600">
+                              ✗ Not available
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        "Enter a unique domain name for your store URL"
+                      )}
+                    </p>
+                  )}
                 </div>
               </div>
 

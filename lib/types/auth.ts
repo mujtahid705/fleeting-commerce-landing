@@ -64,6 +64,7 @@ export interface SessionData {
   access: Access;
   usage: Usage | null;
   unreadNotifications: number;
+  brand?: { id?: string; domain?: string } | null;
 }
 
 export interface LoginRequest {

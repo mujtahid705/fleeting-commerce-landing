@@ -146,7 +146,9 @@ export default function InventoryFormModal({
           )}
           {!isEditMode && availableProducts.length === 0 && (
             <p className="text-yellow-600 text-xs mt-1">
-              All products are already in inventory
+              {products.length === 0
+                ? "No products available. Create products first."
+                : "All products are already in inventory"}
             </p>
           )}
         </div>

@@ -130,10 +130,10 @@ export default function AuthInitializer({
       }
     }
 
-    // Case 4: Everything complete - if on brand-setup, allow; if trying to access plans unnecessarily
+    // Case 4: Brand setup complete - redirect to dashboard if on brand-setup
     if (hasSubscription && brandSetupDone && hasActiveAccess) {
       if (isBrandSetupRoute) {
-        // Allow access to brand-setup for editing
+        router.push("/dashboard");
         return;
       }
     }

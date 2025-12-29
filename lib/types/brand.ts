@@ -40,6 +40,7 @@ export interface BrandState {
   loading: boolean;
   error: string | null;
   updateLoading: boolean;
+  domainCheckLoading: boolean;
 }
 
 // Theme preview URLs - these will be opened in new tabs

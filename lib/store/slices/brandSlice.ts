@@ -7,6 +7,7 @@ const initialState: BrandState = {
   loading: false,
   error: null,
   updateLoading: false,
+  domainCheckLoading: false,
 };
 
 // Fetch current tenant's brand settings
@@ -24,12 +25,30 @@ export const fetchBrand = createAsyncThunk(
   }
 );
 
+// Check domain uniqueness
+export const checkDomainUniqueness = createAsyncThunk(
+  "brand/checkDomainUniqueness",
+  async (domain: string, { rejectWithValue }) => {
+    try {
+      const response = await api.get(
+        `/tenant-brand/check-unique-domain?domain=${domain}`
+      );
+      return response.data as { isAvailable: boolean };
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to check domain availability"
+      );
+    }
+  }
+);
+
 // Create or update brand settings (upsert)
 export const upsertBrand = createAsyncThunk(
   "brand/upsertBrand",
   async (
     data: {
       logo?: File;
+      domain?: string;
       tagline?: string;
       description?: string;
       theme?: number;
@@ -39,6 +58,7 @@ export const upsertBrand = createAsyncThunk(
     try {
       const formData = new FormData();
       if (data.logo) formData.append("logo", data.logo);
+      if (data.domain !== undefined) formData.append("domain", data.domain);
       if (data.tagline !== undefined) formData.append("tagline", data.tagline);
       if (data.description !== undefined)
         formData.append("description", data.description);
@@ -135,6 +155,20 @@ const brandSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // Check domain uniqueness
+    builder
+      .addCase(checkDomainUniqueness.pending, (state) => {
+        state.domainCheckLoading = true;
+        state.error = null;
+      })
+      .addCase(checkDomainUniqueness.fulfilled, (state) => {
+        state.domainCheckLoading = false;
+      })
+      .addCase(checkDomainUniqueness.rejected, (state, action) => {
+        state.domainCheckLoading = false;
+        state.error = action.payload as string;
+      });
+
     // Fetch brand
     builder
       .addCase(fetchBrand.pending, (state) => {
