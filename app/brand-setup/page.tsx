@@ -8,14 +8,14 @@ import {
   Store,
   Palette,
   Upload,
-  ImageIcon,
   Globe,
   Phone,
   Mail,
-  MapPin,
   Check,
   ArrowRight,
   X,
+  ExternalLink,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -26,30 +26,45 @@ import { ButtonSpinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { setBrandSetupCompleted } from "@/lib/store/slices/authSlice";
+import {
+  upsertBrand,
+  checkDomainUniqueness,
+} from "@/lib/store/slices/brandSlice";
+import { THEME_PREVIEWS } from "@/lib/types/brand";
 
 interface BrandFormData {
-  storeName: string;
   domain: string;
   tagline: string;
   description: string;
-  primaryColor: string;
-  secondaryColor: string;
+  theme: number;
   logo: File | null;
-  favicon: File | null;
-  contactEmail: string;
-  contactPhone: string;
-  address: string;
-  socialFacebook: string;
-  socialInstagram: string;
 }
 
-const colorPresets = [
-  { name: "Indigo", primary: "#6366f1", secondary: "#818cf8" },
-  { name: "Blue", primary: "#3b82f6", secondary: "#60a5fa" },
-  { name: "Green", primary: "#22c55e", secondary: "#4ade80" },
-  { name: "Purple", primary: "#a855f7", secondary: "#c084fc" },
-  { name: "Rose", primary: "#f43f5e", secondary: "#fb7185" },
-  { name: "Orange", primary: "#f97316", secondary: "#fb923c" },
+const themes = [
+  {
+    id: 1,
+    name: "Classic",
+    description: "Clean and professional design with a modern touch",
+    previewUrl: THEME_PREVIEWS[1].previewUrl,
+    gradient: "from-indigo-500 to-purple-600",
+    icon: "🎨",
+  },
+  {
+    id: 2,
+    name: "Modern",
+    description: "Bold and contemporary design for trendy brands",
+    previewUrl: THEME_PREVIEWS[2].previewUrl,
+    gradient: "from-blue-500 to-cyan-500",
+    icon: "✨",
+  },
+  {
+    id: 3,
+    name: "Minimal",
+    description: "Simple and elegant design focused on your products",
+    previewUrl: THEME_PREVIEWS[3].previewUrl,
+    gradient: "from-gray-600 to-gray-800",
+    icon: "🌿",
+  },
 ];
 
 export default function BrandSetupPage() {
@@ -57,50 +72,80 @@ export default function BrandSetupPage() {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const { tenant, user } = useAppSelector((state) => state.auth);
+  const { updateLoading, domainCheckLoading } = useAppSelector(
+    (state) => state.brand
+  );
 
   const logoInputRef = useRef<HTMLInputElement>(null);
-  const faviconInputRef = useRef<HTMLInputElement>(null);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
-
-  // Get store base URL and extract domain suffix
-  const storeBaseUrl =
-    process.env.NEXT_PUBLIC_STORE_BASE_URL || "http://localhost:3001";
-  const domainSuffix = storeBaseUrl.replace(/^https?:\/\//, "."); // e.g., ".localhost:3001"
+  const [domainAvailable, setDomainAvailable] = useState<boolean | null>(null);
 
   const [formData, setFormData] = useState<BrandFormData>({
-    storeName: tenant?.name || "",
-    domain: tenant?.name?.toLowerCase().replace(/[^a-z0-9]/g, "") || "",
+    domain: "",
     tagline: "",
     description: "",
-    primaryColor: "#6366f1",
-    secondaryColor: "#818cf8",
+    theme: 1,
     logo: null,
-    favicon: null,
-    contactEmail: user?.email || "",
-    contactPhone: user?.phone || "",
-    address: "",
-    socialFacebook: "",
-    socialInstagram: "",
   });
 
   const [errors, setErrors] = useState<
     Partial<Record<keyof BrandFormData, string>>
   >({});
 
-  const updateField = (field: keyof BrandFormData, value: string) => {
+  const updateField = (field: keyof BrandFormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+    if (field === "domain") {
+      setDomainAvailable(null);
+    }
   };
 
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: "logo" | "favicon"
-  ) => {
+  const handleCheckDomain = async () => {
+    if (!formData.domain.trim()) {
+      showToast({
+        type: "error",
+        title: "Domain required",
+        message: "Please enter a domain name",
+      });
+      return;
+    }
+
+    try {
+      const result = await dispatch(
+        checkDomainUniqueness(formData.domain)
+      ).unwrap();
+      setDomainAvailable(result.isAvailable);
+
+      if (result.isAvailable) {
+        showToast({
+          type: "success",
+          title: "Domain available",
+          message: `${formData.domain}.fleetingcommerce.com is available!`,
+        });
+      } else {
+        showToast({
+          type: "error",
+          title: "Domain taken",
+          message: "This domain is already in use. Please choose another.",
+        });
+        setErrors((prev) => ({
+          ...prev,
+          domain: "Domain is already taken",
+        }));
+      }
+    } catch (error: any) {
+      showToast({
+        type: "error",
+        title: "Check failed",
+        message: error || "Failed to check domain availability",
+      });
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -124,83 +169,79 @@ export default function BrandSetupPage() {
 
     const reader = new FileReader();
     reader.onload = () => {
-      if (field === "logo") {
-        setLogoPreview(reader.result as string);
-      } else {
-        setFaviconPreview(reader.result as string);
-      }
+      setLogoPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
 
-    setFormData((prev) => ({ ...prev, [field]: file }));
+    setFormData((prev) => ({ ...prev, logo: file }));
   };
 
-  const removeImage = (field: "logo" | "favicon") => {
-    setFormData((prev) => ({ ...prev, [field]: null }));
-    if (field === "logo") {
-      setLogoPreview(null);
-      if (logoInputRef.current) logoInputRef.current.value = "";
-    } else {
-      setFaviconPreview(null);
-      if (faviconInputRef.current) faviconInputRef.current.value = "";
-    }
+  const removeImage = () => {
+    setFormData((prev) => ({ ...prev, logo: null }));
+    setLogoPreview(null);
+    if (logoInputRef.current) logoInputRef.current.value = "";
   };
 
-  const selectColorPreset = (preset: {
-    primary: string;
-    secondary: string;
-  }) => {
-    setFormData((prev) => ({
-      ...prev,
-      primaryColor: preset.primary,
-      secondaryColor: preset.secondary,
-    }));
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof BrandFormData, string>> = {};
-
-    if (!formData.storeName.trim()) {
-      newErrors.storeName = "Store name is required";
-    }
-
-    if (!formData.domain.trim()) {
-      newErrors.domain = "Domain is required";
-    } else if (!/^[a-z0-9-]+$/.test(formData.domain)) {
-      newErrors.domain =
-        "Domain can only contain lowercase letters, numbers, and hyphens";
-    } else if (formData.domain.length < 3) {
-      newErrors.domain = "Domain must be at least 3 characters";
-    }
-
-    if (
-      formData.contactEmail &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)
-    ) {
-      newErrors.contactEmail = "Invalid email format";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const openThemePreview = (previewUrl: string) => {
+    window.open(previewUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
 
-    setIsSubmitting(true);
+    // Validate required fields
+    const newErrors: Partial<Record<keyof BrandFormData, string>> = {};
+    if (!formData.domain.trim()) {
+      newErrors.domain = "Domain is required";
+    }
 
-    // TODO: API integration - for now just simulate
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      showToast({
+        type: "error",
+        title: "Validation Error",
+        message: "Please fill in all required fields",
+      });
+      return;
+    }
 
-    // Update Redux state to mark brand setup as complete
-    dispatch(setBrandSetupCompleted());
+    // Warn if domain availability wasn't checked
+    if (domainAvailable === null) {
+      showToast({
+        type: "warning",
+        title: "Domain not checked",
+        message:
+          "Please verify domain availability before submitting to avoid issues.",
+      });
+    }
 
-    setIsSubmitting(false);
-    // Redirect to confirmation page with domain
-    router.push(
-      `/brand-setup/success?domain=${encodeURIComponent(formData.domain)}`
-    );
+    try {
+      await dispatch(
+        upsertBrand({
+          logo: formData.logo || undefined,
+          domain: formData.domain,
+          tagline: formData.tagline || undefined,
+          description: formData.description || undefined,
+          theme: formData.theme,
+        })
+      ).unwrap();
+
+      dispatch(setBrandSetupCompleted());
+
+      showToast({
+        type: "success",
+        title: "Brand setup complete!",
+        message: "Your store branding has been saved successfully.",
+      });
+
+      router.push("/brand-setup/success");
+    } catch (error: any) {
+      showToast({
+        type: "error",
+        title: "Setup failed",
+        message: error || "Failed to save brand settings. Please try again.",
+      });
+    }
   };
 
   return (
@@ -247,7 +288,7 @@ export default function BrandSetupPage() {
                 Set Up Your <span className="gradient-text">Brand</span>
               </h1>
               <p className="text-muted max-w-lg mx-auto">
-                Customize your store&apos;s appearance and contact information.
+                Customize your store&apos;s appearance with a theme and logo.
                 You can always update these settings later.
               </p>
             </motion.div>
@@ -260,7 +301,7 @@ export default function BrandSetupPage() {
               onSubmit={handleSubmit}
               className="space-y-8"
             >
-              {/* Basic Info Section */}
+              {/* Store Info Section - Display Only */}
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -271,69 +312,169 @@ export default function BrandSetupPage() {
                       Store Information
                     </h2>
                     <p className="text-sm text-muted">
-                      Basic details about your store
+                      Your account details (read-only)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Store Name - Read Only */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Store Name
+                    </label>
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50">
+                      <Store size={20} className="text-muted" />
+                      <span className="text-foreground">
+                        {tenant?.name || "Your Store"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {/* Email - Read Only */}
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Email
+                      </label>
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50">
+                        <Mail size={20} className="text-muted" />
+                        <span className="text-foreground truncate">
+                          {user?.email || "email@example.com"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Phone - Read Only */}
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Phone
+                      </label>
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50">
+                        <Phone size={20} className="text-muted" />
+                        <span className="text-foreground">
+                          {user?.phone || "Not provided"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Domain Section */}
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Globe size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-foreground">
+                      Store Domain
+                    </h2>
+                    <p className="text-sm text-muted">
+                      Choose your store&apos;s web address
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Domain Name <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Input
+                        type="text"
+                        placeholder="mystore"
+                        value={formData.domain}
+                        onChange={(e) => {
+                          const value = e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, "");
+                          updateField("domain", value);
+                        }}
+                        error={errors.domain}
+                        maxLength={63}
+                      />
+                    </div>
+                    <span className="text-sm text-muted font-medium whitespace-nowrap">
+                      .fleetingcommerce.com
+                    </span>
+                    <Button
+                      type="button"
+                      onClick={handleCheckDomain}
+                      disabled={!formData.domain.trim() || domainCheckLoading}
+                      variant="outline"
+                      size="md"
+                      className="whitespace-nowrap"
+                    >
+                      {domainCheckLoading ? (
+                        <>
+                          <ButtonSpinner />
+                          Checking...
+                        </>
+                      ) : (
+                        "Check"
+                      )}
+                    </Button>
+                  </div>
+                  {!errors.domain && (
+                    <p className="text-xs text-muted mt-2">
+                      {formData.domain ? (
+                        <>
+                          Your store will be available at{" "}
+                          <span className="font-medium text-primary">
+                            {formData.domain}.fleetingcommerce.com
+                          </span>
+                          {domainAvailable === true && (
+                            <span className="ml-2 text-green-600">
+                              ✓ Available
+                            </span>
+                          )}
+                          {domainAvailable === false && (
+                            <span className="ml-2 text-red-600">
+                              ✗ Not available
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        "Enter a unique domain name for your store URL"
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Brand Details Section */}
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Globe size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-foreground">
+                      Brand Details
+                    </h2>
+                    <p className="text-sm text-muted">
+                      Add a tagline and description for your store
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-5">
-                  <Input
-                    label="Store Name"
-                    type="text"
-                    placeholder="My Awesome Store"
-                    value={formData.storeName}
-                    onChange={(e) => updateField("storeName", e.target.value)}
-                    error={errors.storeName}
-                    icon={<Store size={20} />}
-                  />
-
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Store Domain
-                    </label>
-                    <div className="flex items-center">
-                      <div className="relative flex-1">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
-                          <Globe size={20} />
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="mystore"
-                          value={formData.domain}
-                          onChange={(e) =>
-                            updateField(
-                              "domain",
-                              e.target.value
-                                .toLowerCase()
-                                .replace(/[^a-z0-9-]/g, "")
-                            )
-                          }
-                          className={`w-full pl-11 pr-4 py-3 rounded-l-xl border ${
-                            errors.domain ? "border-red-500" : "border-gray-200"
-                          } bg-white text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all`}
-                        />
-                      </div>
-                      <div className="px-4 py-3 bg-gray-100 border border-l-0 border-gray-200 rounded-r-xl text-muted text-sm whitespace-nowrap">
-                        {domainSuffix}
-                      </div>
-                    </div>
-                    {errors.domain && (
-                      <p className="mt-1.5 text-sm text-red-500">
-                        {errors.domain}
-                      </p>
-                    )}
-                    <p className="mt-1.5 text-xs text-muted">
-                      This will be your store&apos;s unique URL
+                    <Input
+                      label="Tagline (Optional)"
+                      type="text"
+                      placeholder="Your catchy slogan here"
+                      value={formData.tagline}
+                      onChange={(e) => updateField("tagline", e.target.value)}
+                      maxLength={200}
+                    />
+                    <p className="text-xs text-muted mt-1">
+                      {formData.tagline.length}/200 characters
                     </p>
                   </div>
-
-                  <Input
-                    label="Tagline (Optional)"
-                    type="text"
-                    placeholder="Your catchy slogan here"
-                    value={formData.tagline}
-                    onChange={(e) => updateField("tagline", e.target.value)}
-                  />
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
@@ -346,262 +487,149 @@ export default function BrandSetupPage() {
                         updateField("description", e.target.value)
                       }
                       rows={3}
+                      maxLength={2000}
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
                     />
+                    <p className="text-xs text-muted mt-1">
+                      {formData.description.length}/2000 characters
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Branding Section */}
+              {/* Theme Selection Section */}
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Palette size={20} className="text-primary" />
                   </div>
                   <div>
-                    <h2 className="font-semibold text-foreground">Branding</h2>
+                    <h2 className="font-semibold text-foreground">
+                      Choose a Theme
+                    </h2>
                     <p className="text-sm text-muted">
-                      Colors and visual identity
+                      Select a theme for your storefront
                     </p>
                   </div>
                 </div>
 
-                {/* Color Presets */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-foreground mb-3">
-                    Color Theme
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    {colorPresets.map((preset) => (
-                      <button
-                        key={preset.name}
-                        type="button"
-                        onClick={() => selectColorPreset(preset)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all ${
-                          formData.primaryColor === preset.primary
-                            ? "border-primary bg-primary/5"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
+                <div className="grid gap-4">
+                  {themes.map((theme) => (
+                    <div
+                      key={theme.id}
+                      className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        formData.theme === theme.id
+                          ? "border-primary bg-primary/5 shadow-lg"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                      onClick={() => updateField("theme", theme.id)}
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Theme Preview Thumbnail */}
                         <div
-                          className="w-5 h-5 rounded-full"
-                          style={{ backgroundColor: preset.primary }}
-                        />
-                        <span className="text-sm font-medium">
-                          {preset.name}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                          className={`w-16 h-16 rounded-xl bg-gradient-to-br ${theme.gradient} flex items-center justify-center text-2xl flex-shrink-0`}
+                        >
+                          {theme.icon}
+                        </div>
 
-                {/* Custom Colors */}
-                <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Primary Color
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={formData.primaryColor}
-                        onChange={(e) =>
-                          updateField("primaryColor", e.target.value)
-                        }
-                        className="w-12 h-12 rounded-lg cursor-pointer border-2 border-gray-200"
-                      />
-                      <input
-                        type="text"
-                        value={formData.primaryColor}
-                        onChange={(e) =>
-                          updateField("primaryColor", e.target.value)
-                        }
-                        className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-white text-foreground font-mono text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Secondary Color
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={formData.secondaryColor}
-                        onChange={(e) =>
-                          updateField("secondaryColor", e.target.value)
-                        }
-                        className="w-12 h-12 rounded-lg cursor-pointer border-2 border-gray-200"
-                      />
-                      <input
-                        type="text"
-                        value={formData.secondaryColor}
-                        onChange={(e) =>
-                          updateField("secondaryColor", e.target.value)
-                        }
-                        className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-white text-foreground font-mono text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
+                        {/* Theme Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-foreground">
+                              {theme.name}
+                            </h3>
+                            {formData.theme === theme.id && (
+                              <span className="px-2 py-0.5 text-xs font-medium bg-primary text-white rounded-full">
+                                Selected
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted">
+                            {theme.description}
+                          </p>
+                        </div>
 
-                {/* Logo & Favicon */}
-                <div className="grid sm:grid-cols-2 gap-6">
-                  {/* Logo Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Store Logo (Optional)
-                    </label>
-                    <input
-                      ref={logoInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, "logo")}
-                      className="hidden"
-                    />
-                    {logoPreview ? (
-                      <div className="relative w-full h-32 rounded-xl border-2 border-gray-200 overflow-hidden group">
-                        <Image
-                          src={logoPreview}
-                          alt="Logo preview"
-                          fill
-                          className="object-contain p-2"
-                        />
+                        {/* Preview Button */}
                         <button
                           type="button"
-                          onClick={() => removeImage("logo")}
-                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openThemePreview(theme.previewUrl);
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
                         >
-                          <X size={14} />
+                          <Eye size={16} />
+                          Preview
+                          <ExternalLink size={14} />
                         </button>
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => logoInputRef.current?.click()}
-                        className="w-full h-32 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2"
-                      >
-                        <Upload size={24} className="text-muted" />
-                        <span className="text-sm text-muted">Upload Logo</span>
-                      </button>
-                    )}
-                  </div>
 
-                  {/* Favicon Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Favicon (Optional)
-                    </label>
-                    <input
-                      ref={faviconInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, "favicon")}
-                      className="hidden"
-                    />
-                    {faviconPreview ? (
-                      <div className="relative w-full h-32 rounded-xl border-2 border-gray-200 overflow-hidden group">
-                        <Image
-                          src={faviconPreview}
-                          alt="Favicon preview"
-                          fill
-                          className="object-contain p-2"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage("favicon")}
-                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => faviconInputRef.current?.click()}
-                        className="w-full h-32 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2"
-                      >
-                        <ImageIcon size={24} className="text-muted" />
-                        <span className="text-sm text-muted">
-                          Upload Favicon
-                        </span>
-                      </button>
-                    )}
-                  </div>
+                      {/* Selection Indicator */}
+                      {formData.theme === theme.id && (
+                        <div className="absolute top-4 right-4 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <Check size={14} className="text-white" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Contact Info Section */}
+              {/* Logo Upload Section */}
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Globe size={20} className="text-primary" />
+                    <Upload size={20} className="text-primary" />
                   </div>
                   <div>
                     <h2 className="font-semibold text-foreground">
-                      Contact Information
+                      Store Logo
                     </h2>
                     <p className="text-sm text-muted">
-                      How customers can reach you
+                      Upload your store logo (Optional)
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-5">
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    <Input
-                      label="Contact Email"
-                      type="email"
-                      placeholder="contact@store.com"
-                      value={formData.contactEmail}
-                      onChange={(e) =>
-                        updateField("contactEmail", e.target.value)
-                      }
-                      error={errors.contactEmail}
-                      icon={<Mail size={20} />}
-                    />
-                    <Input
-                      label="Contact Phone"
-                      type="tel"
-                      placeholder="+880 1XXX-XXXXXX"
-                      value={formData.contactPhone}
-                      onChange={(e) =>
-                        updateField("contactPhone", e.target.value)
-                      }
-                      icon={<Phone size={20} />}
-                    />
-                  </div>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/jpg,image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
 
-                  <Input
-                    label="Business Address (Optional)"
-                    type="text"
-                    placeholder="123 Main Street, Dhaka, Bangladesh"
-                    value={formData.address}
-                    onChange={(e) => updateField("address", e.target.value)}
-                    icon={<MapPin size={20} />}
-                  />
-
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    <Input
-                      label="Facebook Page (Optional)"
-                      type="url"
-                      placeholder="https://facebook.com/yourstore"
-                      value={formData.socialFacebook}
-                      onChange={(e) =>
-                        updateField("socialFacebook", e.target.value)
-                      }
+                {logoPreview ? (
+                  <div className="relative w-full max-w-xs h-40 rounded-xl border-2 border-gray-200 overflow-hidden group mx-auto">
+                    <Image
+                      src={logoPreview}
+                      alt="Logo preview"
+                      fill
+                      className="object-contain p-4"
                     />
-                    <Input
-                      label="Instagram (Optional)"
-                      type="url"
-                      placeholder="https://instagram.com/yourstore"
-                      value={formData.socialInstagram}
-                      onChange={(e) =>
-                        updateField("socialInstagram", e.target.value)
-                      }
-                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
-                </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    className="w-full max-w-xs mx-auto h-40 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2"
+                  >
+                    <Upload size={32} className="text-muted" />
+                    <span className="text-sm text-muted">
+                      Click to upload logo
+                    </span>
+                    <span className="text-xs text-muted">
+                      JPG, PNG, GIF, WebP, SVG • Max 2MB
+                    </span>
+                  </button>
+                )}
               </div>
 
               {/* Submit */}
@@ -610,9 +638,9 @@ export default function BrandSetupPage() {
                   type="submit"
                   size="lg"
                   className="min-w-[200px] gap-2"
-                  disabled={isSubmitting}
+                  disabled={updateLoading}
                 >
-                  {isSubmitting ? (
+                  {updateLoading ? (
                     <>
                       <ButtonSpinner />
                       Publishing...

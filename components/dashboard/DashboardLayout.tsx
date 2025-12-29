@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Menu, Store } from "lucide-react";
+import { Bell, Menu, Store, ExternalLink } from "lucide-react";
 import Sidebar from "./Sidebar";
 import MobileSidebar from "./MobileSidebar";
 import { useAppSelector } from "@/lib/store/hooks";
+import Button from "@/components/ui/Button";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { tenant, user } = useAppSelector((state) => state.auth);
+
+  const domain = tenant?.domain || "";
+  const storeBaseUrl =
+    process.env.NEXT_PUBLIC_STORE_BASE_URL || "http://localhost:3001";
+  const urlMatch = storeBaseUrl.match(/^(https?:\/\/)(.+)$/);
+  const protocol = urlMatch?.[1] || "http://";
+  const baseDomain = urlMatch?.[2] || "localhost:3001";
+  const storeUrl = domain ? `${protocol}${domain}.${baseDomain}` : "";
+
+  const handleVisitSite = () => {
+    if (storeUrl) {
+      window.open(storeUrl, "_blank", "noopener,noreferrer");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -72,6 +87,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              {storeUrl && (
+                <Button
+                  onClick={handleVisitSite}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <span className="hidden sm:inline">Visit Site</span>
+                  <ExternalLink size={16} />
+                </Button>
+              )}
               <button className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors">
                 <Bell size={20} className="text-muted" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />

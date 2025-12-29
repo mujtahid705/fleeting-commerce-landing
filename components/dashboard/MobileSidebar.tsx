@@ -19,6 +19,9 @@ import {
   Route,
   Component,
   Ungroup,
+  Palette,
+  Shield,
+  UserCog,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { logoutUser } from "@/lib/store/slices/authSlice";
@@ -96,6 +99,24 @@ const navItems = [
     href: "/dashboard/offers",
     icon: Tag,
     access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Brand Setup",
+    href: "/dashboard/brand",
+    icon: Palette,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Team Admins",
+    href: "/dashboard/admins",
+    icon: UserCog,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Super Admins",
+    href: "/dashboard/super-admins",
+    icon: Shield,
+    access: ["SUPER_ADMIN"],
   },
   {
     name: "Settings",

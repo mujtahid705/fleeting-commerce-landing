@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { motion } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   PartyPopper,
   ExternalLink,
@@ -13,13 +13,16 @@ import {
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Container from "@/components/ui/Container";
+import { useAppSelector } from "@/lib/store/hooks";
 import confetti from "canvas-confetti";
 
 function BrandSetupSuccessContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const domain = searchParams.get("domain");
+  const { tenant } = useAppSelector((state) => state.auth);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Get the store domain from tenant name
+  const domain = tenant?.name?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
 
   const storeBaseUrl =
     process.env.NEXT_PUBLIC_STORE_BASE_URL || "http://localhost:3001";
@@ -27,14 +30,9 @@ function BrandSetupSuccessContent() {
   const urlMatch = storeBaseUrl.match(/^(https?:\/\/)(.+)$/);
   const protocol = urlMatch?.[1] || "http://";
   const baseDomain = urlMatch?.[2] || "localhost:3001";
-  const storeUrl = `${protocol}${domain}.${baseDomain}`;
+  const storeUrl = domain ? `${protocol}${domain}.${baseDomain}` : "";
 
   useEffect(() => {
-    if (!domain) {
-      router.push("/brand-setup");
-      return;
-    }
-
     // Trigger confetti animation
     setShowConfetti(true);
     const duration = 3000;
@@ -62,11 +60,7 @@ function BrandSetupSuccessContent() {
     };
 
     frame();
-  }, [domain, router]);
-
-  if (!domain) {
-    return null;
-  }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -144,25 +138,27 @@ function BrandSetupSuccessContent() {
             </motion.p>
 
             {/* Store URL Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 mb-8"
-            >
-              <p className="text-sm text-muted mb-3">Your store is live at</p>
-              <a
-                href={storeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group inline-flex items-center gap-2 text-lg md:text-2xl font-semibold text-primary hover:text-primary/80 transition-colors break-all"
+            {storeUrl && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 mb-8"
               >
-                <span className="bg-primary/5 px-4 py-2 rounded-xl">
-                  {storeUrl}
-                </span>
-                <ExternalLink className="w-5 h-5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
-            </motion.div>
+                <p className="text-sm text-muted mb-3">Your store is live at</p>
+                <a
+                  href={storeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-2 text-lg md:text-2xl font-semibold text-primary hover:text-primary/80 transition-colors break-all"
+                >
+                  <span className="bg-primary/5 px-4 py-2 rounded-xl">
+                    {storeUrl}
+                  </span>
+                  <ExternalLink className="w-5 h-5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+              </motion.div>
+            )}
 
             {/* Features List */}
             <motion.div
@@ -232,14 +228,16 @@ function BrandSetupSuccessContent() {
                 Continue to Dashboard
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => window.open(storeUrl, "_blank")}
-              >
-                <ExternalLink className="w-5 h-5 mr-2" />
-                Visit Your Store
-              </Button>
+              {storeUrl && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => window.open(storeUrl, "_blank")}
+                >
+                  <ExternalLink className="w-5 h-5 mr-2" />
+                  Visit Your Store
+                </Button>
+              )}
             </motion.div>
           </motion.div>
         </Container>

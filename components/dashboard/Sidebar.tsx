@@ -22,6 +22,7 @@ import {
   Ungroup,
   Shield,
   UserCog,
+  Palette,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { logoutUser } from "@/lib/store/slices/authSlice";
@@ -98,6 +99,12 @@ const navItems = [
     name: "Offers",
     href: "/dashboard/offers",
     icon: Tag,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Brand Setup",
+    href: "/dashboard/brand",
+    icon: Palette,
     access: ["TENANT_ADMIN"],
   },
   {

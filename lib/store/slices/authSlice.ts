@@ -246,6 +246,15 @@ const authSlice = createSlice({
         state.usage = action.payload.data.usage;
         state.unreadNotifications = action.payload.data.unreadNotifications;
         state.error = null;
+
+        if (state.tenant) {
+          const brandData = action.payload.data.brand;
+          const hasBrand = brandData && (brandData.id || brandData.domain);
+
+          if (hasBrand) {
+            state.tenant.brandSetupCompleted = true;
+          }
+        }
       })
       .addCase(validateSession.rejected, (state, action) => {
         state.isLoading = false;
