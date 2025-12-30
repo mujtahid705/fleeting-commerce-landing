@@ -23,8 +23,8 @@ function BrandSetupSuccessContent() {
   const { tenant } = useAppSelector((state) => state.auth);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Get the store domain from tenant name
-  const domain = tenant?.name?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
+  // Get the store domain from tenant
+  const domain = tenant?.domain || "";
 
   const storeBaseUrl =
     process.env.NEXT_PUBLIC_STORE_BASE_URL || "http://localhost:3001";
