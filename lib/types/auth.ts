@@ -15,6 +15,7 @@ export interface User {
 export interface Tenant {
   id: string;
   name: string;
+  domain: string;
   hasUsedTrial: boolean;
   brandSetupCompleted: boolean;
   createdAt: string;

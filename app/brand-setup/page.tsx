@@ -25,7 +25,6 @@ import Container from "@/components/ui/Container";
 import { ButtonSpinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { setBrandSetupCompleted } from "@/lib/store/slices/authSlice";
 import {
   upsertBrand,
   checkDomainUniqueness,
@@ -225,8 +224,6 @@ export default function BrandSetupPage() {
           theme: formData.theme,
         })
       ).unwrap();
-
-      dispatch(setBrandSetupCompleted());
 
       showToast({
         type: "success",
