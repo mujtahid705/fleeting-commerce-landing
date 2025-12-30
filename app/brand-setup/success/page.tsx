@@ -13,11 +13,13 @@ import {
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Container from "@/components/ui/Container";
-import { useAppSelector } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { setBrandSetupCompleted } from "@/lib/store/slices/authSlice";
 import confetti from "canvas-confetti";
 
 function BrandSetupSuccessContent() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { tenant } = useAppSelector((state) => state.auth);
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -222,7 +224,10 @@ function BrandSetupSuccessContent() {
             >
               <Button
                 size="lg"
-                onClick={() => router.push("/dashboard")}
+                onClick={() => {
+                  dispatch(setBrandSetupCompleted());
+                  router.push("/dashboard");
+                }}
                 className="group"
               >
                 Continue to Dashboard

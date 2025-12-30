@@ -171,10 +171,7 @@ export default function ProductsPage() {
 
   // Format price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(price);
+    return `৳ ${price.toLocaleString("en-US")}`;
   };
 
   return (

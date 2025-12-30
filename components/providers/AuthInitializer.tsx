@@ -50,8 +50,8 @@ export default function AuthInitializer({
 
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
   const isPlansRoute = pathname === PLANS_ROUTE;
-  const isBrandSetupRoute =
-    pathname === BRAND_SETUP_ROUTE || pathname === BRAND_SETUP_SUCCESS_ROUTE;
+  const isBrandSetupRoute = pathname === BRAND_SETUP_ROUTE;
+  const isBrandSetupSuccessRoute = pathname === BRAND_SETUP_SUCCESS_ROUTE;
   const isDashboardRoute = pathname.startsWith(DASHBOARD_ROUTES_PREFIX);
 
   // Session validation on mount
@@ -130,7 +130,7 @@ export default function AuthInitializer({
       }
     }
 
-    // Case 4: Brand setup complete - redirect to dashboard if on brand-setup
+    // Case 4: Brand setup complete - redirect to dashboard only from brand-setup page
     if (hasSubscription && brandSetupDone && hasActiveAccess) {
       if (isBrandSetupRoute) {
         router.push("/dashboard");

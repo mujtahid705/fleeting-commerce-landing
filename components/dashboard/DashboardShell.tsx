@@ -18,12 +18,16 @@ export default function DashboardShell({
   subtitle,
 }: DashboardShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50/50">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <Sidebar />
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
       </div>
 
       {/* Mobile Sidebar */}
@@ -33,7 +37,10 @@ export default function DashboardShell({
       />
 
       {/* Main Content */}
-      <div className="lg:pl-[280px] transition-all duration-300">
+      <div
+        className="transition-all duration-300 max-lg:!pl-0"
+        style={{ paddingLeft: sidebarCollapsed ? 80 : 280 }}
+      >
         {/* Top Header */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
