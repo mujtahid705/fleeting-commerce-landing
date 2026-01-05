@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -12,6 +13,7 @@ import {
   Eye,
   Package,
   X,
+  AlertCircle,
 } from "lucide-react";
 import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
@@ -19,6 +21,7 @@ import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import WarningBanner from "@/components/ui/WarningBanner";
 import ProductFormModal, {
   ProductFormData,
 } from "@/components/dashboard/ProductFormModal";
@@ -108,6 +111,14 @@ export default function ProductsPage() {
 
   // Open create modal
   const handleAddProduct = () => {
+    if (categories.length === 0) {
+      showToast({
+        type: "error",
+        title: "No Categories",
+        message: "Please create at least one category before adding products.",
+      });
+      return;
+    }
     dispatch(clearSelectedProduct());
     setIsFormModalOpen(true);
   };
@@ -177,6 +188,28 @@ export default function ProductsPage() {
   return (
     <>
       <PageHeader title="Products" subtitle="Manage your product catalog" />
+
+      {/* Warning Banner - No Categories */}
+      {categories.length === 0 && (
+        <WarningBanner
+          title="No Categories Available"
+          message={
+            <>
+              You need to create at least one category before you can add
+              products. Please go to the{" "}
+              <Link
+                href="/dashboard/categories"
+                className="underline font-medium hover:text-amber-900"
+              >
+                Categories page
+              </Link>{" "}
+              to create your first category.
+            </>
+          }
+          variant="warning"
+          className="mb-6"
+        />
+      )}
 
       {/* Actions Bar */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -318,6 +351,7 @@ export default function ProductsPage() {
             size="sm"
             className="flex items-center gap-2"
             onClick={handleAddProduct}
+            disabled={categories.length === 0}
           >
             <Plus size={18} />
             Add Product
@@ -358,6 +392,7 @@ export default function ProductsPage() {
                 <Button
                   onClick={handleAddProduct}
                   className="flex items-center gap-2"
+                  disabled={categories.length === 0}
                 >
                   <Plus size={18} />
                   Add Product
