@@ -14,14 +14,20 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Container from "@/components/ui/Container";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { setBrandSetupCompleted } from "@/lib/store/slices/authSlice";
+import {
+  setBrandSetupCompleted,
+  validateSession,
+} from "@/lib/store/slices/authSlice";
 import confetti from "canvas-confetti";
 
 function BrandSetupSuccessContent() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { tenant } = useAppSelector((state) => state.auth);
+  const { tenant, sessionValidated, isLoading } = useAppSelector(
+    (state) => state.auth
+  );
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Get the store domain from tenant
   const domain = tenant?.domain || "";
@@ -34,7 +40,22 @@ function BrandSetupSuccessContent() {
   const baseDomain = urlMatch?.[2] || "localhost:3001";
   const storeUrl = domain ? `${protocol}${domain}.${baseDomain}` : "";
 
+  // Validate session to ensure we have tenant data
   useEffect(() => {
+    const initializeData = async () => {
+      if (!sessionValidated) {
+        await dispatch(validateSession());
+      }
+      setIsInitializing(false);
+    };
+
+    initializeData();
+  }, [dispatch, sessionValidated]);
+
+  useEffect(() => {
+    // Only trigger confetti after data is loaded
+    if (isInitializing || !tenant) return;
+
     // Trigger confetti animation
     setShowConfetti(true);
     const duration = 3000;
@@ -62,7 +83,19 @@ function BrandSetupSuccessContent() {
     };
 
     frame();
-  }, []);
+  }, [isInitializing, tenant]);
+
+  // Show loading state while fetching tenant data
+  if (isInitializing || isLoading || !tenant) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-muted">Loading your store details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

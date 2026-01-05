@@ -1,6 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/lib/api";
-import { BrandState, TenantBrand } from "@/lib/types/brand";
+import {
+  BrandState,
+  TenantBrand,
+  HeroSection,
+  BrowseCategoriesSection,
+  ExclusiveSection,
+  FeaturedCategoriesSection,
+  FooterSection,
+} from "@/lib/types/brand";
 
 const initialState: BrandState = {
   brand: null,
@@ -48,22 +56,52 @@ export const upsertBrand = createAsyncThunk(
   async (
     data: {
       logo?: File;
+      heroImage?: File;
+      exclusiveImages?: File[];
       domain?: string;
       tagline?: string;
       description?: string;
       theme?: number;
+      hero?: HeroSection;
+      browseCategories?: BrowseCategoriesSection;
+      exclusiveSection?: ExclusiveSection;
+      featuredCategories?: FeaturedCategoriesSection;
+      footer?: FooterSection;
     },
     { rejectWithValue }
   ) => {
     try {
       const formData = new FormData();
       if (data.logo) formData.append("logo", data.logo);
+      if (data.heroImage) formData.append("heroImage", data.heroImage);
+      if (data.exclusiveImages) {
+        data.exclusiveImages.forEach((file) => {
+          formData.append("exclusiveImages", file);
+        });
+      }
       if (data.domain !== undefined) formData.append("domain", data.domain);
       if (data.tagline !== undefined) formData.append("tagline", data.tagline);
       if (data.description !== undefined)
         formData.append("description", data.description);
       if (data.theme !== undefined)
         formData.append("theme", data.theme.toString());
+      if (data.hero) formData.append("hero", JSON.stringify(data.hero));
+      if (data.browseCategories)
+        formData.append(
+          "browseCategories",
+          JSON.stringify(data.browseCategories)
+        );
+      if (data.exclusiveSection)
+        formData.append(
+          "exclusiveSection",
+          JSON.stringify(data.exclusiveSection)
+        );
+      if (data.featuredCategories)
+        formData.append(
+          "featuredCategories",
+          JSON.stringify(data.featuredCategories)
+        );
+      if (data.footer) formData.append("footer", JSON.stringify(data.footer));
 
       const response = await api.post("/tenant-brand", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -83,20 +121,50 @@ export const updateBrand = createAsyncThunk(
   async (
     data: {
       logo?: File;
+      heroImage?: File;
+      exclusiveImages?: File[];
       tagline?: string;
       description?: string;
       theme?: number;
+      hero?: HeroSection;
+      browseCategories?: BrowseCategoriesSection;
+      exclusiveSection?: ExclusiveSection;
+      featuredCategories?: FeaturedCategoriesSection;
+      footer?: FooterSection;
     },
     { rejectWithValue }
   ) => {
     try {
       const formData = new FormData();
       if (data.logo) formData.append("logo", data.logo);
+      if (data.heroImage) formData.append("heroImage", data.heroImage);
+      if (data.exclusiveImages) {
+        data.exclusiveImages.forEach((file) => {
+          formData.append("exclusiveImages", file);
+        });
+      }
       if (data.tagline !== undefined) formData.append("tagline", data.tagline);
       if (data.description !== undefined)
         formData.append("description", data.description);
       if (data.theme !== undefined)
         formData.append("theme", data.theme.toString());
+      if (data.hero) formData.append("hero", JSON.stringify(data.hero));
+      if (data.browseCategories)
+        formData.append(
+          "browseCategories",
+          JSON.stringify(data.browseCategories)
+        );
+      if (data.exclusiveSection)
+        formData.append(
+          "exclusiveSection",
+          JSON.stringify(data.exclusiveSection)
+        );
+      if (data.featuredCategories)
+        formData.append(
+          "featuredCategories",
+          JSON.stringify(data.featuredCategories)
+        );
+      if (data.footer) formData.append("footer", JSON.stringify(data.footer));
 
       const response = await api.patch("/tenant-brand", formData, {
         headers: { "Content-Type": "multipart/form-data" },

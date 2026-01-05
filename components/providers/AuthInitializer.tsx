@@ -124,15 +124,15 @@ export default function AuthInitializer({
 
     // Case 3: Has subscription but brand setup not complete
     if (hasSubscription && !brandSetupDone && hasActiveAccess) {
-      if (isDashboardRoute) {
+      if (isDashboardRoute || isPlansRoute) {
         router.push("/brand-setup");
         return;
       }
     }
 
-    // Case 4: Brand setup complete - redirect to dashboard only from brand-setup page
+    // Case 4: Brand setup complete - redirect to dashboard only from brand-setup page (not success page)
     if (hasSubscription && brandSetupDone && hasActiveAccess) {
-      if (isBrandSetupRoute) {
+      if (isBrandSetupRoute && !isBrandSetupSuccessRoute) {
         router.push("/dashboard");
         return;
       }
