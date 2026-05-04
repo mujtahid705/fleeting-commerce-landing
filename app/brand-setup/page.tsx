@@ -215,7 +215,7 @@ export default function BrandSetupPage() {
     }
 
     try {
-      await dispatch(
+      const brandResult = await dispatch(
         upsertBrand({
           logo: formData.logo || undefined,
           domain: formData.domain,
@@ -224,6 +224,13 @@ export default function BrandSetupPage() {
           theme: formData.theme,
         })
       ).unwrap();
+
+      if (brandResult.domain && brandResult.tenantId) {
+        localStorage.setItem(
+          "fc_brand_setup_domain",
+          JSON.stringify({ domain: brandResult.domain, tenantId: brandResult.tenantId })
+        );
+      }
 
       showToast({
         type: "success",
