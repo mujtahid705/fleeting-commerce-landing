@@ -1,6 +1,13 @@
 "use client";
 
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { OrderStatusCount } from "@/lib/types/dashboard";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -40,7 +47,10 @@ export default function OrderStatusDonut({ data }: OrderStatusDonutProps) {
           paddingAngle={3}
         >
           {nonZero.map((entry) => (
-            <Cell key={entry.status} fill={STATUS_COLORS[entry.status] ?? "#6366f1"} />
+            <Cell
+              key={entry.status}
+              fill={STATUS_COLORS[entry.status] ?? "#6366f1"}
+            />
           ))}
         </Pie>
         <Tooltip
@@ -48,7 +58,11 @@ export default function OrderStatusDonut({ data }: OrderStatusDonutProps) {
             value,
             String(name).charAt(0).toUpperCase() + String(name).slice(1),
           ]}
-          contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 13 }}
+          contentStyle={{
+            borderRadius: 12,
+            border: "1px solid #e2e8f0",
+            fontSize: 13,
+          }}
         />
         <Legend
           formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)}

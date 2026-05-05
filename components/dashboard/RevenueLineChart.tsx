@@ -38,7 +38,10 @@ export default function RevenueLineChart({ data }: RevenueLineChartProps) {
 
   return (
     <ResponsiveContainer width="100%" height={256}>
-      <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+      <LineChart
+        data={chartData}
+        margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+      >
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
         <XAxis
           dataKey="date"
@@ -64,9 +67,15 @@ export default function RevenueLineChart({ data }: RevenueLineChartProps) {
         />
         <Tooltip
           formatter={(value: any, name: any) =>
-            String(name) === "revenue" ? [formatTaka(value), "Revenue"] : [value, "Orders"]
+            String(name) === "revenue"
+              ? [formatTaka(value), "Revenue"]
+              : [value, "Orders"]
           }
-          contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 13 }}
+          contentStyle={{
+            borderRadius: 12,
+            border: "1px solid #e2e8f0",
+            fontSize: 13,
+          }}
         />
         <Legend
           formatter={(value) => (value === "revenue" ? "Revenue" : "Orders")}
