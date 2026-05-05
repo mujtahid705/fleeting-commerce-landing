@@ -413,7 +413,7 @@ export default function ProductsPage() {
               <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
                 {product.images && product.images.length > 0 ? (
                   <img
-                    src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${product.images[0].imageUrl}`}
+                    src={product.images[0].imageUrl}
                     alt={product.title}
                     className="w-full h-full object-cover"
                   />
@@ -554,10 +554,10 @@ export default function ProductsPage() {
                     <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden mb-4">
                       {viewProduct.images && viewProduct.images.length > 0 ? (
                         <img
-                          src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${
+                          src={
                             viewProduct.images[selectedImageIndex]?.imageUrl ||
                             viewProduct.images[0].imageUrl
-                          }`}
+                          }
                           alt={viewProduct.title}
                           className="w-full h-full object-cover"
                         />
@@ -580,7 +580,7 @@ export default function ProductsPage() {
                             }`}
                           >
                             <img
-                              src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${image.imageUrl}`}
+                              src={image.imageUrl}
                               alt={`${viewProduct.title} ${index + 1}`}
                               className="w-full h-full object-cover"
                             />

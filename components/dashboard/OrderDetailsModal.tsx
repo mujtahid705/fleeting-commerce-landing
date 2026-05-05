@@ -76,7 +76,7 @@ export default function OrderDetailsModal({
 
   const config = statusConfig[order.status];
   const StatusIcon = config.icon;
-  const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
+
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("en-US", {
@@ -223,7 +223,7 @@ export default function OrderDetailsModal({
                       <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
                         {item.product.images?.[0]?.imageUrl ? (
                           <Image
-                            src={`${imageBaseUrl}${item.product.images[0].imageUrl}`}
+                            src={item.product.images[0].imageUrl}
                             alt={item.product.title}
                             width={64}
                             height={64}

@@ -285,7 +285,7 @@ export default function ProductFormModal({
               {existingImages.map((imageUrl, index) => (
                 <div key={index} className="relative aspect-square group">
                   <img
-                    src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${imageUrl}`}
+                    src={imageUrl}
                     alt={`Product ${index + 1}`}
                     className="w-full h-full object-cover rounded-xl border border-gray-200"
                   />
