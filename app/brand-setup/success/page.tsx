@@ -29,8 +29,21 @@ function BrandSetupSuccessContent() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
-  // Get the store domain from tenant
-  const domain = tenant?.domain || "";
+  // Get the store domain from tenant, fall back to localStorage for post-payment redirects
+  const domainFromTenant = tenant?.domain || "";
+  const domainFromStorage = (() => {
+    if (domainFromTenant) return "";
+    try {
+      const stored = localStorage.getItem("fc_brand_setup_domain");
+      if (!stored) return "";
+      const parsed = JSON.parse(stored) as { domain: string; tenantId: string };
+      if (tenant && parsed.tenantId !== tenant.id) return "";
+      return parsed.domain;
+    } catch {
+      return "";
+    }
+  })();
+  const domain = domainFromTenant || domainFromStorage;
 
   const storeBaseUrl =
     process.env.NEXT_PUBLIC_STORE_BASE_URL || "http://localhost:3001";
@@ -258,6 +271,7 @@ function BrandSetupSuccessContent() {
               <Button
                 size="lg"
                 onClick={() => {
+                  localStorage.removeItem("fc_brand_setup_domain");
                   dispatch(setBrandSetupCompleted());
                   router.push("/dashboard");
                 }}

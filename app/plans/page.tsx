@@ -88,12 +88,8 @@ const isPopularPlan = (plan: Plan): boolean => {
 // Helper to get badge text
 const getBadge = (plan: Plan): string | undefined => {
   if (plan.trialDays > 0) return "Try Free";
-  if (
-    plan.name.toLowerCase().includes("growth") ||
-    plan.name.toLowerCase().includes("pro")
-  )
-    return "Most Popular";
-  if (plan.name.toLowerCase().includes("enterprise")) return "Best Value";
+  if (plan.name.toLowerCase().includes("pro")) return "Most Popular";
+  if (plan.name.toLowerCase().includes("growth")) return "Best Value";
   return undefined;
 };
 
@@ -110,7 +106,7 @@ export default function PlansPage() {
   const { showToast } = useToast();
 
   const { isAuthenticated, token, tenant } = useAppSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
   const { plans, isLoading, isSelecting, selectedPlanId, error } =
     useAppSelector((state) => state.plans);
@@ -277,17 +273,17 @@ export default function PlansPage() {
                     plan.trialDays > 0
                       ? `${plan.trialDays} days`
                       : plan.interval === "MONTHLY"
-                      ? "month"
-                      : "year"
+                        ? "month"
+                        : "year"
                   }
                   description={
                     plan.trialDays > 0
                       ? `Try all features free for ${plan.trialDays} days. No credit card required.`
                       : plan.price < 2000
-                      ? "Perfect for small businesses just getting started."
-                      : plan.price < 5000
-                      ? "Great for growing businesses and serious sellers."
-                      : "For large businesses needing complete control and support."
+                        ? "Perfect for small businesses just getting started."
+                        : plan.price < 5000
+                          ? "Great for growing businesses and serious sellers."
+                          : "For large businesses needing complete control and support."
                   }
                   features={features}
                   popular={popular}

@@ -2,14 +2,15 @@ import { UserRole } from "./auth";
 
 export interface Admin {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
-  phone: string;
-  role: UserRole;
-  tenantId: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  phone: string | null;
+  role?: UserRole;
+  tenantId?: string | null;
+  isActive?: boolean;
+  isPrimary?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateSuperAdminPayload {
@@ -24,7 +25,12 @@ export interface CreateTenantAdminPayload {
   email: string;
   password: string;
   phone: string;
-  tenantId: string;
+  tenantId?: string;
+}
+
+export interface UpdateTenantAdminStatusPayload {
+  id: string;
+  isActive: boolean;
 }
 
 export interface SuperAdminsState {
@@ -38,5 +44,8 @@ export interface TenantAdminsState {
   admins: Admin[];
   isLoading: boolean;
   isCreating: boolean;
+  isUpdatingStatus: boolean;
+  isDeleting: boolean;
+  activeActionId: string | null;
   error: string | null;
 }

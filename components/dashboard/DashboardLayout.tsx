@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Menu, Store, ExternalLink } from "lucide-react";
+import { Menu, Store, ExternalLink } from "lucide-react";
 import Sidebar from "./Sidebar";
 import MobileSidebar from "./MobileSidebar";
+import NotificationDropdown from "./NotificationDropdown";
 import { useAppSelector } from "@/lib/store/hooks";
 import Button from "@/components/ui/Button";
 
@@ -98,10 +99,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <ExternalLink size={16} />
                 </Button>
               )}
-              <button className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors">
-                <Bell size={20} className="text-muted" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              </button>
+              <NotificationDropdown />
               <div className="lg:hidden w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold">
                 JD
               </div>

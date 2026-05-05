@@ -15,6 +15,9 @@ import {
   Plus,
   Eye,
   UserPlus,
+  Trash2,
+  ShieldCheck,
+  Power,
 } from "lucide-react";
 import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
@@ -23,11 +26,14 @@ import StatCard from "@/components/dashboard/StatCard";
 import Spinner from "@/components/ui/Spinner";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
   fetchTenantAdmins,
   createTenantAdmin,
+  updateTenantAdminStatus,
+  deleteTenantAdmin,
 } from "@/lib/store/slices/tenantAdminsSlice";
 import { Admin } from "@/lib/types/admins";
 
@@ -37,12 +43,20 @@ export default function TenantAdminsPage() {
   const { showToast } = useToast();
 
   const { user, tenant } = useAppSelector((state) => state.auth);
-  const { admins, isLoading, isCreating, error } = useAppSelector(
-    (state) => state.tenantAdmins
-  );
+  const {
+    admins,
+    isLoading,
+    isCreating,
+    isUpdatingStatus,
+    isDeleting,
+    activeActionId,
+    error,
+  } = useAppSelector((state) => state.tenantAdmins);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [statusTarget, setStatusTarget] = useState<Admin | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Admin | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -80,19 +94,40 @@ export default function TenantAdminsPage() {
 
   // Stats
   const totalAdmins = admins.length;
-  const activeAdmins = admins.filter((a) => a.isActive).length;
-  const inactiveAdmins = admins.filter((a) => !a.isActive).length;
+  const activeAdmins = admins.filter((a) => a.isActive !== false).length;
+  const inactiveAdmins = admins.filter((a) => a.isActive === false).length;
+  const primaryAdmins = admins.filter((a) => a.isPrimary).length;
+
+  const getInitials = (admin: Admin) =>
+    admin.name
+      ? admin.name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2)
+      : admin.email[0].toUpperCase();
+
+  const formatDate = (date?: string) =>
+    date ? new Date(date).toLocaleDateString() : "N/A";
 
   // Handle create
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tenant?.id) {
-      showToast({ type: "error", title: "Tenant ID not found" });
+    if (formData.password.length < 8) {
+      showToast({
+        type: "error",
+        title: "Password must be at least 8 characters",
+      });
       return;
     }
+
     try {
       await dispatch(
-        createTenantAdmin({ ...formData, tenantId: tenant.id })
+        createTenantAdmin({
+          ...formData,
+          tenantId: tenant?.id || user?.tenantId || undefined,
+        })
       ).unwrap();
       showToast({ type: "success", title: "Admin created successfully" });
       setShowCreateModal(false);
@@ -100,6 +135,67 @@ export default function TenantAdminsPage() {
     } catch (err) {
       showToast({ type: "error", title: err as string });
     }
+  };
+
+  const handleStatusChange = async () => {
+    if (!statusTarget) return;
+
+    const nextStatus = statusTarget.isActive === false;
+    try {
+      const updatedAdmin = await dispatch(
+        updateTenantAdminStatus({
+          id: statusTarget.id,
+          isActive: nextStatus,
+        })
+      ).unwrap();
+      showToast({
+        type: "success",
+        title: nextStatus ? "Admin enabled" : "Admin disabled",
+      });
+      setStatusTarget(null);
+      if (selectedAdmin?.id === updatedAdmin.id) {
+        setSelectedAdmin({ ...selectedAdmin, ...updatedAdmin });
+      }
+    } catch (err) {
+      showToast({ type: "error", title: err as string });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      await dispatch(deleteTenantAdmin(deleteTarget.id)).unwrap();
+      showToast({ type: "success", title: "Admin deleted successfully" });
+      if (selectedAdmin?.id === deleteTarget.id) {
+        setSelectedAdmin(null);
+      }
+      setDeleteTarget(null);
+    } catch (err) {
+      showToast({ type: "error", title: err as string });
+    }
+  };
+
+  const openStatusDialog = (admin: Admin) => {
+    if (admin.isPrimary && admin.isActive !== false) {
+      showToast({
+        type: "error",
+        title: "Primary tenant admin cannot be disabled",
+      });
+      return;
+    }
+    setStatusTarget(admin);
+  };
+
+  const openDeleteDialog = (admin: Admin) => {
+    if (admin.isPrimary) {
+      showToast({
+        type: "error",
+        title: "Primary tenant admin cannot be deleted",
+      });
+      return;
+    }
+    setDeleteTarget(admin);
   };
 
   // Table columns
@@ -110,17 +206,19 @@ export default function TenantAdminsPage() {
       render: (item: Admin) => (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-semibold text-sm">
-            {item.name
-              ? item.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-              : item.email[0].toUpperCase()}
+            {getInitials(item)}
           </div>
-          <div>
-            <p className="font-medium text-gray-900">{item.name || "N/A"}</p>
-            <p className="text-xs text-gray-500">{item.email}</p>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-gray-900">{item.name || "N/A"}</p>
+              {item.isPrimary && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+                  <ShieldCheck size={12} />
+                  Primary
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 truncate">{item.email}</p>
           </div>
         </div>
       ),
@@ -141,13 +239,17 @@ export default function TenantAdminsPage() {
       render: (item: Admin) => (
         <span
           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-            item.isActive
+            item.isActive !== false
               ? "bg-green-100 text-green-700"
               : "bg-gray-100 text-gray-700"
           }`}
         >
-          {item.isActive ? <UserCheck size={12} /> : <UserX size={12} />}
-          {item.isActive ? "Active" : "Inactive"}
+          {item.isActive !== false ? (
+            <UserCheck size={12} />
+          ) : (
+            <UserX size={12} />
+          )}
+          {item.isActive !== false ? "Active" : "Inactive"}
         </span>
       ),
     },
@@ -155,22 +257,55 @@ export default function TenantAdminsPage() {
       key: "createdAt" as keyof Admin,
       header: "Joined",
       render: (item: Admin) => (
-        <span className="text-gray-600">
-          {new Date(item.createdAt).toLocaleDateString()}
-        </span>
+        <span className="text-gray-600">{formatDate(item.createdAt)}</span>
       ),
     },
     {
       key: "id" as keyof Admin,
       header: "Actions",
       render: (item: Admin) => (
-        <button
-          onClick={() => setSelectedAdmin(item)}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          title="View Details"
-        >
-          <Eye className="w-4 h-4 text-gray-600" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setSelectedAdmin(item)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            title="View details"
+          >
+            <Eye className="w-4 h-4 text-gray-600" />
+          </button>
+          <button
+            onClick={() => openStatusDialog(item)}
+            disabled={
+              activeActionId === item.id ||
+              (item.isPrimary && item.isActive !== false)
+            }
+            className={`p-2 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+              item.isActive !== false
+                ? "text-amber-600 hover:bg-amber-50"
+                : "text-green-600 hover:bg-green-50"
+            }`}
+            title={
+              item.isPrimary && item.isActive !== false
+                ? "Primary admin cannot be disabled"
+                : item.isActive !== false
+                  ? "Disable admin"
+                  : "Enable admin"
+            }
+          >
+            <Power className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => openDeleteDialog(item)}
+            disabled={activeActionId === item.id || item.isPrimary}
+            className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            title={
+              item.isPrimary
+                ? "Primary admin cannot be deleted"
+                : "Delete admin"
+            }
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       ),
     },
   ];
@@ -214,6 +349,26 @@ export default function TenantAdminsPage() {
           delay={0.2}
         />
       </div>
+
+      <PageCard className="mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">
+              Tenant admin access
+            </h2>
+            <p className="text-sm text-muted mt-1">
+              Add admins for your store, pause access when needed, and keep the
+              primary admin protected.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+            <ShieldCheck size={16} />
+            {primaryAdmins > 0
+              ? `${primaryAdmins} primary admin${primaryAdmins > 1 ? "s" : ""}`
+              : "Primary admin protected"}
+          </div>
+        </div>
+      </PageCard>
 
       {/* Search & Actions */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -270,18 +425,20 @@ export default function TenantAdminsPage() {
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-                      {selectedAdmin.name
-                        ? selectedAdmin.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()
-                        : selectedAdmin.email[0].toUpperCase()}
+                      {getInitials(selectedAdmin)}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold">
-                        {selectedAdmin.name || "N/A"}
-                      </h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-xl font-bold">
+                          {selectedAdmin.name || "N/A"}
+                        </h3>
+                        {selectedAdmin.isPrimary && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-1 text-xs font-semibold">
+                            <ShieldCheck size={13} />
+                            Primary
+                          </span>
+                        )}
+                      </div>
                       <p className="text-white/80 text-sm">
                         {selectedAdmin.email}
                       </p>
@@ -335,12 +492,12 @@ export default function TenantAdminsPage() {
                   </div>
                   <span
                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                      selectedAdmin.isActive
+                      selectedAdmin.isActive !== false
                         ? "bg-green-100 text-green-700"
                         : "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {selectedAdmin.isActive ? "Active" : "Inactive"}
+                    {selectedAdmin.isActive !== false ? "Active" : "Inactive"}
                   </span>
                 </div>
 
@@ -350,16 +507,37 @@ export default function TenantAdminsPage() {
                     <span className="text-sm text-gray-600">Joined</span>
                   </div>
                   <span className="font-medium text-gray-900">
-                    {new Date(selectedAdmin.createdAt).toLocaleDateString()}
+                    {formatDate(selectedAdmin.createdAt)}
                   </span>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="p-6 border-t border-gray-100">
+              <div className="grid gap-3 p-6 border-t border-gray-100 sm:grid-cols-3">
+                <button
+                  onClick={() => openStatusDialog(selectedAdmin)}
+                  disabled={
+                    activeActionId === selectedAdmin.id ||
+                    (selectedAdmin.isPrimary &&
+                      selectedAdmin.isActive !== false)
+                  }
+                  className="py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {selectedAdmin.isActive !== false ? "Disable" : "Enable"}
+                </button>
+                <button
+                  onClick={() => openDeleteDialog(selectedAdmin)}
+                  disabled={
+                    activeActionId === selectedAdmin.id ||
+                    selectedAdmin.isPrimary
+                  }
+                  className="py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Delete
+                </button>
                 <button
                   onClick={() => setSelectedAdmin(null)}
-                  className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+                  className="py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
                 >
                   Close
                 </button>
@@ -474,6 +652,36 @@ export default function TenantAdminsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={Boolean(statusTarget)}
+        onClose={() => setStatusTarget(null)}
+        onConfirm={handleStatusChange}
+        title={
+          statusTarget?.isActive === false
+            ? "Enable team admin?"
+            : "Disable team admin?"
+        }
+        message={
+          statusTarget?.isActive === false
+            ? `${statusTarget?.name || statusTarget?.email} will regain access to this tenant dashboard.`
+            : `${statusTarget?.name || statusTarget?.email} will no longer be able to access this tenant dashboard.`
+        }
+        confirmText={statusTarget?.isActive === false ? "Enable" : "Disable"}
+        isLoading={isUpdatingStatus}
+        variant={statusTarget?.isActive === false ? "info" : "warning"}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Delete team admin?"
+        message={`${deleteTarget?.name || deleteTarget?.email || "This admin"} will be permanently removed from this tenant.`}
+        confirmText="Delete admin"
+        isLoading={isDeleting}
+        variant="danger"
+      />
     </>
   );
 }

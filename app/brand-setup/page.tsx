@@ -72,7 +72,7 @@ export default function BrandSetupPage() {
   const { showToast } = useToast();
   const { tenant, user } = useAppSelector((state) => state.auth);
   const { updateLoading, domainCheckLoading } = useAppSelector(
-    (state) => state.brand
+    (state) => state.brand,
   );
 
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -114,7 +114,7 @@ export default function BrandSetupPage() {
 
     try {
       const result = await dispatch(
-        checkDomainUniqueness(formData.domain)
+        checkDomainUniqueness(formData.domain),
       ).unwrap();
       setDomainAvailable(result.isAvailable);
 
@@ -181,8 +181,17 @@ export default function BrandSetupPage() {
     if (logoInputRef.current) logoInputRef.current.value = "";
   };
 
-  const openThemePreview = (previewUrl: string) => {
-    window.open(previewUrl, "_blank", "noopener,noreferrer");
+  const openThemePreview = (themeId: number) => {
+    const storeBaseUrl = process.env.NEXT_PUBLIC_STORE_BASE_URL || "";
+    const baseUrl = storeBaseUrl.endsWith("/")
+      ? storeBaseUrl.slice(0, -1)
+      : storeBaseUrl;
+
+    const url = baseUrl.includes("://")
+      ? baseUrl.replace(/:\/\//, "://theme-preview.") + `/${themeId}`
+      : `https://theme-preview.${baseUrl}/${themeId}`;
+
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -215,15 +224,25 @@ export default function BrandSetupPage() {
     }
 
     try {
-      await dispatch(
+      const brandResult = await dispatch(
         upsertBrand({
           logo: formData.logo || undefined,
           domain: formData.domain,
           tagline: formData.tagline || undefined,
           description: formData.description || undefined,
           theme: formData.theme,
-        })
+        }),
       ).unwrap();
+
+      if (brandResult.domain && brandResult.tenantId) {
+        localStorage.setItem(
+          "fc_brand_setup_domain",
+          JSON.stringify({
+            domain: brandResult.domain,
+            tenantId: brandResult.tenantId,
+          }),
+        );
+      }
 
       showToast({
         type: "success",
@@ -551,7 +570,7 @@ export default function BrandSetupPage() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            openThemePreview(theme.previewUrl);
+                            openThemePreview(theme.id);
                           }}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
                         >

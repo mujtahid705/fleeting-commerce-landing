@@ -10,7 +10,6 @@ import {
   ShoppingCart,
   Users,
   CreditCard,
-  BarChart3,
   Tag,
   Settings,
   X,
@@ -86,12 +85,6 @@ const navItems = [
     name: "Payments",
     href: "/dashboard/payments",
     icon: CreditCard,
-    access: ["SUPER_ADMIN", "TENANT_ADMIN"],
-  },
-  {
-    name: "Analytics",
-    href: "/dashboard/analytics",
-    icon: BarChart3,
     access: ["SUPER_ADMIN", "TENANT_ADMIN"],
   },
   {
