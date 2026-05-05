@@ -4,12 +4,16 @@ import {
   Admin,
   TenantAdminsState,
   CreateTenantAdminPayload,
+  UpdateTenantAdminStatusPayload,
 } from "@/lib/types/admins";
 
 const initialState: TenantAdminsState = {
   admins: [],
   isLoading: false,
   isCreating: false,
+  isUpdatingStatus: false,
+  isDeleting: false,
+  activeActionId: null,
   error: null,
 };
 
@@ -51,6 +55,49 @@ export const createTenantAdmin = createAsyncThunk<
   }
 });
 
+// Enable or disable tenant admin
+export const updateTenantAdminStatus = createAsyncThunk<
+  Admin,
+  UpdateTenantAdminStatusPayload,
+  { rejectValue: string }
+>(
+  "tenantAdmins/updateStatus",
+  async ({ id, isActive }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/users/tenant-admin/${id}/status`, {
+        isActive,
+      });
+      return response.data.data || response.data;
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string } };
+      };
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to update tenant admin status"
+      );
+    }
+  }
+);
+
+// Delete tenant admin
+export const deleteTenantAdmin = createAsyncThunk<
+  string,
+  string,
+  { rejectValue: string }
+>("tenantAdmins/delete", async (id, { rejectWithValue }) => {
+  try {
+    await api.delete(`/users/tenant-admin/${id}`);
+    return id;
+  } catch (error: unknown) {
+    const err = error as {
+      response?: { data?: { message?: string } };
+    };
+    return rejectWithValue(
+      err.response?.data?.message || "Failed to delete tenant admin"
+    );
+  }
+});
+
 const tenantAdminsSlice = createSlice({
   name: "tenantAdmins",
   initialState,
@@ -86,6 +133,46 @@ const tenantAdminsSlice = createSlice({
       .addCase(createTenantAdmin.rejected, (state, action) => {
         state.isCreating = false;
         state.error = action.payload || "Failed to create tenant admin";
+      })
+      // Update tenant admin status
+      .addCase(updateTenantAdminStatus.pending, (state, action) => {
+        state.isUpdatingStatus = true;
+        state.activeActionId = action.meta.arg.id;
+        state.error = null;
+      })
+      .addCase(updateTenantAdminStatus.fulfilled, (state, action) => {
+        state.isUpdatingStatus = false;
+        state.activeActionId = null;
+        const updatedAdmin = action.payload;
+        const admin = state.admins.find((item) => item.id === updatedAdmin.id);
+        if (admin) {
+          admin.isActive = updatedAdmin.isActive;
+          admin.updatedAt = updatedAdmin.updatedAt ?? admin.updatedAt;
+        }
+      })
+      .addCase(updateTenantAdminStatus.rejected, (state, action) => {
+        state.isUpdatingStatus = false;
+        state.activeActionId = null;
+        state.error =
+          action.payload || "Failed to update tenant admin status";
+      })
+      // Delete tenant admin
+      .addCase(deleteTenantAdmin.pending, (state, action) => {
+        state.isDeleting = true;
+        state.activeActionId = action.meta.arg;
+        state.error = null;
+      })
+      .addCase(deleteTenantAdmin.fulfilled, (state, action) => {
+        state.isDeleting = false;
+        state.activeActionId = null;
+        state.admins = state.admins.filter(
+          (admin) => admin.id !== action.payload
+        );
+      })
+      .addCase(deleteTenantAdmin.rejected, (state, action) => {
+        state.isDeleting = false;
+        state.activeActionId = null;
+        state.error = action.payload || "Failed to delete tenant admin";
       });
   },
 });

@@ -38,7 +38,7 @@ export default function SuperAdminsPage() {
 
   const { user } = useAppSelector((state) => state.auth);
   const { admins, isLoading, isCreating, error } = useAppSelector(
-    (state) => state.superAdmins
+    (state) => state.superAdmins,
   );
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,7 +75,7 @@ export default function SuperAdminsPage() {
     (admin) =>
       admin.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       admin.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.phone?.includes(searchQuery)
+      admin.phone?.includes(searchQuery),
   );
 
   // Stats
@@ -103,7 +103,7 @@ export default function SuperAdminsPage() {
       header: "Admin",
       render: (item: Admin) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+          <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
             {item.name
               ? item.name
                   .split(" ")
@@ -150,7 +150,9 @@ export default function SuperAdminsPage() {
       header: "Joined",
       render: (item: Admin) => (
         <span className="text-gray-600">
-          {new Date(item.createdAt).toLocaleDateString()}
+          {item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString()
+            : "N/A"}
         </span>
       ),
     },
@@ -260,7 +262,7 @@ export default function SuperAdminsPage() {
               className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
+              <div className="bg-linear-to-r from-purple-600 to-indigo-600 p-6 text-white">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
@@ -344,7 +346,9 @@ export default function SuperAdminsPage() {
                     <span className="text-sm text-gray-600">Joined</span>
                   </div>
                   <span className="font-medium text-gray-900">
-                    {new Date(selectedAdmin.createdAt).toLocaleDateString()}
+                    {selectedAdmin.createdAt
+                      ? new Date(selectedAdmin.createdAt).toLocaleDateString()
+                      : "N/A"}
                   </span>
                 </div>
               </div>
@@ -381,7 +385,7 @@ export default function SuperAdminsPage() {
               className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
+              <div className="bg-linear-to-r from-purple-600 to-indigo-600 p-6 text-white">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
                     <UserPlus size={24} />
