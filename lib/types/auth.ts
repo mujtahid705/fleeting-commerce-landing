@@ -8,6 +8,7 @@ export interface User {
   role: UserRole;
   tenantId: string | null;
   isActive: boolean;
+  isPrimary?: boolean;
   createdAt: string;
   updatedAt: string;
 }

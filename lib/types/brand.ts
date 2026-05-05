@@ -157,4 +157,9 @@ export const THEME_PREVIEWS: Record<
     previewUrl: "https://themes.fleetingcommerce.com/minimal",
     description: "Simple and elegant design focused on your products",
   },
+  4: {
+    name: "Editorial Boutique",
+    previewUrl: "https://themes.fleetingcommerce.com/editorial-boutique",
+    description: "Refined editorial layout for boutique brand storytelling",
+  },
 };

@@ -90,6 +90,14 @@ const themes = [
     gradient: "from-gray-600 to-gray-800",
     icon: "🌿",
   },
+  {
+    id: 4,
+    name: "Editorial Boutique",
+    description: "Refined editorial layout for boutique brand storytelling",
+    previewUrl: THEME_PREVIEWS[4].previewUrl,
+    gradient: "from-rose-500 to-amber-500",
+    icon: "📰",
+  },
 ];
 
 // Collapsible Section Component
@@ -147,20 +155,20 @@ export default function BrandPage() {
   const { showToast } = useToast();
   const { tenant, user } = useAppSelector((state) => state.auth);
   const { brand, loading, updateLoading, error } = useAppSelector(
-    (state) => state.brand
+    (state) => state.brand,
   );
   const { categories, isLoading: categoriesLoading } = useAppSelector(
-    (state) => state.categories
+    (state) => state.categories,
   );
   const { products, isLoading: productsLoading } = useAppSelector(
-    (state) => state.products
+    (state) => state.products,
   );
 
   // File input refs
   const logoInputRef = useRef<HTMLInputElement>(null);
   const heroImageInputRef = useRef<HTMLInputElement>(null);
   const exclusiveImageRefs = useRef<{ [key: number]: HTMLInputElement | null }>(
-    {}
+    {},
   );
 
   // Logo state
@@ -443,7 +451,7 @@ export default function BrandPage() {
   // Exclusive product image handlers
   const handleExclusiveProductImageChange = (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -511,7 +519,7 @@ export default function BrandPage() {
     setBrowseCategoriesData((prev) => ({
       ...prev,
       categories: prev.categories.map((cat, i) =>
-        i === index ? { ...cat, categoryId: Number(categoryId) } : cat
+        i === index ? { ...cat, categoryId: Number(categoryId) } : cat,
       ),
     }));
     markChanged();
@@ -540,12 +548,12 @@ export default function BrandPage() {
 
   const updateFeaturedCategory = (
     index: number,
-    categoryId: string | number
+    categoryId: string | number,
   ) => {
     setFeaturedCategoriesData((prev) => ({
       ...prev,
       categories: prev.categories.map((cat, i) =>
-        i === index ? { ...cat, categoryId: Number(categoryId) } : cat
+        i === index ? { ...cat, categoryId: Number(categoryId) } : cat,
       ),
     }));
     markChanged();
@@ -576,12 +584,12 @@ export default function BrandPage() {
   const updateExclusiveProduct = (
     index: number,
     field: keyof ExclusiveProductItem,
-    value: string | number
+    value: string | number,
   ) => {
     setExclusiveData((prev) => ({
       ...prev,
       products: prev.products.map((product, i) =>
-        i === index ? { ...product, [field]: value } : product
+        i === index ? { ...product, [field]: value } : product,
       ),
     }));
     markChanged();
@@ -618,12 +626,12 @@ export default function BrandPage() {
   const updateQuickLink = (
     index: number,
     field: keyof QuickLink,
-    value: string
+    value: string,
   ) => {
     setFooterData((prev) => ({
       ...prev,
       quickLinks: prev.quickLinks?.map((link, i) =>
-        i === index ? { ...link, [field]: value } : link
+        i === index ? { ...link, [field]: value } : link,
       ),
     }));
     markChanged();
@@ -768,29 +776,38 @@ export default function BrandPage() {
     setHasChanges(false);
   };
 
-  const openThemePreview = (previewUrl: string) => {
-    window.open(previewUrl, "_blank", "noopener,noreferrer");
+  const openThemePreview = (themeId: number) => {
+    const storeBaseUrl = process.env.NEXT_PUBLIC_STORE_BASE_URL || "";
+    const baseUrl = storeBaseUrl.endsWith("/")
+      ? storeBaseUrl.slice(0, -1)
+      : storeBaseUrl;
+
+    const url = baseUrl.includes("://")
+      ? baseUrl.replace(/:\/\//, "://theme-preview.") + `/${themeId}`
+      : `https://theme-preview.${baseUrl}/${themeId}`;
+
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   // Category options for select
   const categoryOptions = categoriesLoading
     ? [{ value: "", label: "Loading categories..." }]
     : categories.length === 0
-    ? [{ value: "", label: "No categories available" }]
-    : categories.map((cat) => ({
-        value: cat.id,
-        label: cat.name,
-      }));
+      ? [{ value: "", label: "No categories available" }]
+      : categories.map((cat) => ({
+          value: cat.id,
+          label: cat.name,
+        }));
 
   // Product options for select
   const productOptions = productsLoading
     ? [{ value: "", label: "Loading products..." }]
     : products.length === 0
-    ? [{ value: "", label: "No products available" }]
-    : products.map((p) => ({
-        value: p.id,
-        label: p.title,
-      }));
+      ? [{ value: "", label: "No products available" }]
+      : products.map((p) => ({
+          value: p.id,
+          label: p.title,
+        }));
 
   // Helper to get category name
   const getCategoryName = (id: string | number) => {
@@ -1057,7 +1074,7 @@ export default function BrandPage() {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    openThemePreview(theme.previewUrl);
+                    openThemePreview(theme.id);
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
                 >
@@ -1334,7 +1351,7 @@ export default function BrandPage() {
                           updateExclusiveProduct(
                             index,
                             "productId",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         options={productOptions}
@@ -1352,7 +1369,7 @@ export default function BrandPage() {
                           updateExclusiveProduct(
                             index,
                             "customTitle",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                       />
