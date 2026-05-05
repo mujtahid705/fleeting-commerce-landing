@@ -44,9 +44,9 @@ export default function OrderStatusDonut({ data }: OrderStatusDonutProps) {
           ))}
         </Pie>
         <Tooltip
-          formatter={(value: number, name: string) => [
+          formatter={(value: any, name: any) => [
             value,
-            name.charAt(0).toUpperCase() + name.slice(1),
+            String(name).charAt(0).toUpperCase() + String(name).slice(1),
           ]}
           contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 13 }}
         />

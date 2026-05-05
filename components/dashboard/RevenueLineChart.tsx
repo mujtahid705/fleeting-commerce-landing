@@ -63,8 +63,8 @@ export default function RevenueLineChart({ data }: RevenueLineChartProps) {
           width={30}
         />
         <Tooltip
-          formatter={(value: number, name: string) =>
-            name === "revenue" ? [formatTaka(value), "Revenue"] : [value, "Orders"]
+          formatter={(value: any, name: any) =>
+            String(name) === "revenue" ? [formatTaka(value), "Revenue"] : [value, "Orders"]
           }
           contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 13 }}
         />
