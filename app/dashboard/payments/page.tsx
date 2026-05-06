@@ -223,7 +223,7 @@ export default function PaymentsPage() {
           delay={0}
         />
         <StatCard
-          title="Revenue Collected"
+          title="Total Spent"
           value={`৳${paidAmount.toLocaleString()}`}
           change={`of ৳${totalAmount.toLocaleString()} total`}
           changeType="positive"

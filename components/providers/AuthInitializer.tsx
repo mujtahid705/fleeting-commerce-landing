@@ -96,26 +96,41 @@ export default function AuthInitializer({
 
     const hasSubscription = !!subscription;
     const hasActiveAccess = access?.hasAccess ?? false;
-    const isTrialExpired =
+    const isInGracePeriod = access?.isInGracePeriod ?? false;
+    const endDatePassed = subscription
+      ? new Date(subscription.endDate) < new Date()
+      : false;
+    const isExpired =
+      !hasActiveAccess ||
       subscription?.status === "EXPIRED" ||
-      (subscription?.status === "TRIAL" && !hasActiveAccess);
+      subscription?.status === "CANCELLED" ||
+      (subscription?.status === "TRIAL" && endDatePassed) ||
+      (subscription?.status === "ACTIVE" && endDatePassed);
+    const isTrial = subscription?.status === "TRIAL";
     const brandSetupDone = tenant?.brandSetupCompleted ?? false;
 
-    // Case 1: No subscription - redirect to plans (block brand-setup too)
+    // Case 1: No subscription - redirect to plans
     if (!hasSubscription && !isPlansRoute && !isPublicRoute) {
       router.push("/plans");
       return;
     }
 
-    // Case 2: Trial expired - redirect to plans with toast
-    if (isTrialExpired && !isPlansRoute && !isPublicRoute) {
+    // Case 2: Expired/cancelled — redirect to plans, unless in grace period
+    if (
+      hasSubscription &&
+      isExpired &&
+      !isInGracePeriod &&
+      !isPlansRoute &&
+      !isPublicRoute
+    ) {
       if (!hasShownTrialExpiredToast.current) {
         hasShownTrialExpiredToast.current = true;
         showToast({
           type: "warning",
-          title: "Trial Expired",
-          message:
-            "Your free trial has ended. Please select a plan to continue.",
+          title: isTrial ? "Trial Expired" : "Subscription Expired",
+          message: isTrial
+            ? "Your free trial has ended. Please select a plan to continue."
+            : "Your subscription has expired. Please renew to continue.",
         });
       }
       router.push("/plans");

@@ -12,6 +12,7 @@ import {
   XCircle,
   Package,
   AlertCircle,
+  TrendingUp,
 } from "lucide-react";
 import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
@@ -85,6 +86,9 @@ export default function OrdersPage() {
   ).length;
   const shippedCount = orders.filter((o) => o.status === "shipped").length;
   const deliveredCount = orders.filter((o) => o.status === "delivered").length;
+  const totalRevenue = orders
+    .filter((o) => o.status === "delivered")
+    .reduce((acc, o) => acc + o.totalAmount, 0);
 
   // View order details
   const handleViewOrder = (order: Order) => {
@@ -234,10 +238,12 @@ export default function OrdersPage() {
           delay={0.1}
         />
         <StatCard
-          title="Processing"
-          value={processingCount.toString()}
-          icon={AlertCircle}
-          iconColor="from-blue-500 to-indigo-500"
+          title="Total Revenue"
+          value={`৳${totalRevenue.toLocaleString()}`}
+          change={`${deliveredCount} delivered order${deliveredCount !== 1 ? "s" : ""}`}
+          changeType="positive"
+          icon={TrendingUp}
+          iconColor="from-green-500 to-emerald-500"
           delay={0.2}
         />
         <StatCard

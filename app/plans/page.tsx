@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Zap, Shield, Clock } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, Zap, Shield, Clock, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import Container from "@/components/ui/Container";
 import PlanCard from "@/components/ui/PlanCard";
@@ -100,12 +100,14 @@ const getButtonText = (plan: Plan, isAuthenticated: boolean): string => {
   return isAuthenticated ? "Select Plan" : "Get Started";
 };
 
-export default function PlansPage() {
+function PlansPageInner() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const isRenewal = searchParams.get("renew") === "1";
 
-  const { isAuthenticated, token, tenant } = useAppSelector(
+  const { isAuthenticated, token, tenant, subscription } = useAppSelector(
     (state) => state.auth,
   );
   const { plans, isLoading, isSelecting, selectedPlanId, error } =
@@ -117,10 +119,16 @@ export default function PlansPage() {
     ? plans.filter((plan) => plan.trialDays === 0)
     : plans;
 
-  // Fetch plans on mount
+  // Fetch plans on mount; pre-select current plan when renewing
   useEffect(() => {
     dispatch(fetchPlans());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isRenewal && subscription?.plan?.id && plans.length > 0) {
+      dispatch(setSelectedPlanId(subscription.plan.id));
+    }
+  }, [isRenewal, subscription, plans, dispatch]);
 
   // Show error toast when error occurs
   useEffect(() => {
@@ -232,6 +240,21 @@ export default function PlansPage() {
       {/* Main Content */}
       <main className="py-16">
         <Container>
+          {/* Renewal notice */}
+          {isRenewal && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 mb-10 px-5 py-4 rounded-2xl bg-primary/5 border border-primary/20 max-w-2xl mx-auto"
+            >
+              <RefreshCw size={20} className="text-primary flex-shrink-0" />
+              <p className="text-sm font-medium text-foreground">
+                Renew your subscription below — your current plan is
+                pre-selected.
+              </p>
+            </motion.div>
+          )}
+
           {/* Page Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -239,7 +262,11 @@ export default function PlansPage() {
             className="text-center mb-16"
           >
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Choose Your <span className="gradient-text">Perfect Plan</span>
+              {isRenewal ? (
+                <>Renew Your <span className="gradient-text">Subscription</span></>
+              ) : (
+                <>Choose Your <span className="gradient-text">Perfect Plan</span></>
+              )}
             </h1>
             <p className="text-lg text-muted max-w-2xl mx-auto">
               {hasUsedTrial
@@ -362,6 +389,14 @@ export default function PlansPage() {
         </Container>
       </footer>
     </div>
+  );
+}
+
+export default function PlansPage() {
+  return (
+    <Suspense>
+      <PlansPageInner />
+    </Suspense>
   );
 }
 
