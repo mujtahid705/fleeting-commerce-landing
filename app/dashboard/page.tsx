@@ -24,7 +24,7 @@ import { Order, OrderStatus } from "@/lib/types/orders";
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 const RANGE_DAYS: Record<DashboardRange, number> = { "7d": 7, "30d": 30, "90d": 90 };
-const PAGE_LOAD_TS = Date.now();
+// Computed fresh inside useMemo — see analytics below
 
 function deltaPct(curr: number, prev: number): number | null {
   if (prev === 0) return null;
@@ -129,7 +129,10 @@ export default function DashboardPage() {
   // ── derived analytics ──────────────────────────────────────────────────────
 
   const analytics = useMemo(() => {
-    const now = PAGE_LOAD_TS;
+    // End of today so orders created any time today are included
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    const now = todayEnd.getTime();
     const days = RANGE_DAYS[range];
     const currStart = now - days * 86400_000;
     const prevStart = now - days * 2 * 86400_000;
@@ -146,7 +149,7 @@ export default function DashboardPage() {
     const currOrders = orders.filter((o) => inCurr(o.createdAt));
     const prevOrders = orders.filter((o) => inPrev(o.createdAt));
 
-    const activeOrders = (arr: Order[]) => arr.filter((o) => o.status !== "cancelled");
+    const activeOrders = (arr: Order[]) => arr.filter((o) => o.status === "delivered");
 
     const currRevenue = activeOrders(currOrders).reduce((s, o) => s + o.totalAmount, 0);
     const prevRevenue = activeOrders(prevOrders).reduce((s, o) => s + o.totalAmount, 0);
@@ -165,7 +168,7 @@ export default function DashboardPage() {
       const bucketEndTs = now - i * 86400_000;
       const bucketStartTs = bucketEndTs - bucketSize * 86400_000;
       const bucketOrders = orders.filter((o) => {
-        if (o.status === "cancelled") return false;
+        if (o.status !== "delivered") return false;
         const t = new Date(o.createdAt).getTime();
         return t >= bucketStartTs && t <= bucketEndTs;
       });

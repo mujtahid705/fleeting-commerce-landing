@@ -527,31 +527,39 @@ export default function ProductsPage() {
               onClick={() => setIsViewModalOpen(false)}
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.2 }}
-              className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl max-h-[92vh] flex flex-col"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Product Details
-                </h2>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Package size={17} className="text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-semibold text-foreground leading-tight">
+                      {viewProduct.title}
+                    </h2>
+                    <p className="text-xs text-muted">Product Details</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setIsViewModalOpen(false)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-muted hover:text-foreground"
                 >
-                  <X size={20} className="text-muted" />
+                  <X size={18} />
                 </button>
               </div>
 
-              {/* Content */}
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Images */}
-                  <div>
-                    <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden mb-4">
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+                  {/* Left — images */}
+                  <div className="p-5 border-b md:border-b-0 md:border-r border-gray-100">
+                    <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden border border-gray-200 mb-3">
                       {viewProduct.images && viewProduct.images.length > 0 ? (
                         <img
                           src={
@@ -562,8 +570,9 @@ export default function ProductsPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package size={64} className="text-gray-300" />
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                          <Package size={48} className="text-gray-300" />
+                          <span className="text-xs text-muted">No image</span>
                         </div>
                       )}
                     </div>
@@ -573,10 +582,10 @@ export default function ProductsPage() {
                           <button
                             key={index}
                             onClick={() => setSelectedImageIndex(index)}
-                            className={`aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all ${
+                            className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                               selectedImageIndex === index
                                 ? "border-primary ring-2 ring-primary/20"
-                                : "border-transparent hover:border-gray-300"
+                                : "border-gray-200 hover:border-primary/50"
                             }`}
                           >
                             <img
@@ -588,12 +597,18 @@ export default function ProductsPage() {
                         ))}
                       </div>
                     )}
+                    {viewProduct.images && viewProduct.images.length > 0 && (
+                      <p className="text-xs text-muted text-center mt-2">
+                        {viewProduct.images.length} image{viewProduct.images.length !== 1 ? "s" : ""}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Details */}
-                  <div className="space-y-4">
+                  {/* Right — details */}
+                  <div className="p-5 space-y-4">
+                    {/* Title + price */}
                     <div>
-                      <h3 className="text-xl font-bold text-foreground">
+                      <h3 className="text-lg font-bold text-foreground leading-snug">
                         {viewProduct.title}
                       </h3>
                       <p className="text-2xl font-bold text-primary mt-1">
@@ -601,57 +616,81 @@ export default function ProductsPage() {
                       </p>
                     </div>
 
-                    <p className="text-muted text-sm leading-relaxed">
-                      {viewProduct.description}
-                    </p>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted">Category:</span>
-                        <span className="text-sm font-medium text-foreground">
-                          {viewProduct.category?.name || "Uncategorized"}
-                        </span>
-                      </div>
+                    {/* Tags row */}
+                    <div className="flex flex-wrap gap-2">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                        {viewProduct.category?.name || "Uncategorized"}
+                      </span>
                       {viewProduct.subCategory && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted">
-                            Subcategory:
-                          </span>
-                          <span className="text-sm font-medium text-foreground">
-                            {viewProduct.subCategory.name}
-                          </span>
-                        </div>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          {viewProduct.subCategory.name}
+                        </span>
                       )}
                       {viewProduct.brand && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted">Brand:</span>
-                          <span className="text-sm font-medium text-foreground">
-                            {viewProduct.brand}
-                          </span>
-                        </div>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent-foreground border border-accent/20">
+                          {viewProduct.brand}
+                        </span>
                       )}
                     </div>
 
-                    <div className="flex gap-3 pt-4">
-                      <Button
-                        className="flex-1 flex items-center justify-center gap-2"
-                        onClick={() => {
-                          setIsViewModalOpen(false);
-                          handleEditProduct(viewProduct);
-                        }}
-                      >
-                        <Edit size={16} />
-                        Edit Product
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsViewModalOpen(false)}
-                      >
-                        Close
-                      </Button>
+                    {/* Description */}
+                    {viewProduct.description && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1.5">
+                          Description
+                        </p>
+                        <p className="text-sm text-foreground leading-relaxed">
+                          {viewProduct.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Meta */}
+                    <div className="space-y-2 pt-1 border-t border-gray-100">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted">Added</span>
+                        <span className="font-medium text-foreground">
+                          {new Date(viewProduct.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted">Updated</span>
+                        <span className="font-medium text-foreground">
+                          {new Date(viewProduct.updatedAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="flex-1 sm:flex-none"
+                >
+                  Close
+                </Button>
+                <Button
+                  className="flex-1 flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleEditProduct(viewProduct);
+                  }}
+                >
+                  <Edit size={15} />
+                  Edit Product
+                </Button>
               </div>
             </motion.div>
           </div>

@@ -5,6 +5,7 @@ import { Menu, Store, ExternalLink } from "lucide-react";
 import Sidebar from "./Sidebar";
 import MobileSidebar from "./MobileSidebar";
 import NotificationDropdown from "./NotificationDropdown";
+import SubscriptionBanner from "./SubscriptionBanner";
 import { useAppSelector } from "@/lib/store/hooks";
 import Button from "@/components/ui/Button";
 
@@ -108,7 +109,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="p-4 lg:p-8">{children}</main>
+        <main className="p-4 lg:p-8">
+          <SubscriptionBanner />
+          {children}
+        </main>
       </div>
     </div>
   );
