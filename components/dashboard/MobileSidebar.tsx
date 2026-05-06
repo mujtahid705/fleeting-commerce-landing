@@ -23,6 +23,7 @@ import {
   UserCog,
   FileText,
   Mail,
+  Star,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { logoutUser } from "@/lib/store/slices/authSlice";
@@ -66,6 +67,12 @@ const navItems = [
     access: ["TENANT_ADMIN"],
   },
   {
+    name: "Reviews",
+    href: "/dashboard/reviews",
+    icon: Star,
+    access: ["TENANT_ADMIN"],
+  },
+  {
     name: "Customers",
     href: "/dashboard/customers",
     icon: Users,
@@ -96,7 +103,7 @@ const navItems = [
     access: ["TENANT_ADMIN"],
   },
   {
-    name: "Brand Setup",
+    name: "Brand & Home Page",
     href: "/dashboard/brand",
     icon: Palette,
     access: ["TENANT_ADMIN"],

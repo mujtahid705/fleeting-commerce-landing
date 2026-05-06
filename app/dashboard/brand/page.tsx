@@ -828,7 +828,7 @@ export default function BrandPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <PageHeader
-          title="Brand & Storefront"
+          title="Brand & Home Page"
           subtitle="Customize your store's appearance and content sections"
         />
         <div className="flex gap-2">
@@ -1340,23 +1340,73 @@ export default function BrandPage() {
                     </button>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="space-y-3">
+                    {/* Product selector with preview */}
                     <div>
                       <label className="block text-xs font-medium text-muted mb-1">
                         Product
                       </label>
-                      <Select
-                        value={product.productId}
-                        onChange={(e) =>
-                          updateExclusiveProduct(
-                            index,
-                            "productId",
-                            e.target.value,
-                          )
-                        }
-                        options={productOptions}
-                        placeholder="Select product"
-                      />
+                      {product.productId ? (
+                        (() => {
+                          const selectedProduct = products.find(
+                            (p) => p.id === product.productId,
+                          );
+                          return (
+                            <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-primary/30">
+                              <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
+                                {selectedProduct?.images?.[0]?.imageUrl ? (
+                                  <img
+                                    src={selectedProduct.images[0].imageUrl}
+                                    alt={selectedProduct.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Package size={18} className="text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">
+                                  {selectedProduct?.title || product.productId}
+                                </p>
+                                <p className="text-xs text-muted">
+                                  {selectedProduct?.price != null
+                                    ? `৳${selectedProduct.price.toLocaleString()}`
+                                    : ""}
+                                  {selectedProduct?.category?.name && (
+                                    <span className="ml-2 text-xs text-gray-400">
+                                      {selectedProduct.category.name}
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateExclusiveProduct(index, "productId", "")
+                                }
+                                className="p-1.5 text-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <Select
+                          value={product.productId}
+                          onChange={(e) =>
+                            updateExclusiveProduct(
+                              index,
+                              "productId",
+                              e.target.value,
+                            )
+                          }
+                          options={productOptions}
+                          placeholder="Select product"
+                        />
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-muted mb-1">
