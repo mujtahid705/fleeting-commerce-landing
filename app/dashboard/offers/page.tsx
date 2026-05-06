@@ -111,7 +111,7 @@ function SaleCard({ sale, onEdit, onDelete }: SaleCardProps) {
 
   async function handleToggleActive() {
     const result = await dispatch(
-      updateSaleDiscount({ id: sale.id, isActive: !sale.isActive })
+      updateSaleDiscount({ id: sale.id, isActive: !sale.isActive, value: sale.value })
     );
     if (updateSaleDiscount.rejected.match(result)) {
       showToast({ type: "error", title: "Error", message: result.payload as string });
@@ -227,7 +227,7 @@ function CouponCard({ coupon, onEdit, onDelete }: CouponCardProps) {
 
   async function handleToggleActive() {
     const result = await dispatch(
-      updateCoupon({ id: coupon.id, isActive: !coupon.isActive })
+      updateCoupon({ id: coupon.id, isActive: !coupon.isActive, value: coupon.value })
     );
     if (updateCoupon.rejected.match(result)) {
       showToast({ type: "error", title: "Error", message: result.payload as string });
