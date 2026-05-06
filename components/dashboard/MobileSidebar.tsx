@@ -21,6 +21,8 @@ import {
   Palette,
   Shield,
   UserCog,
+  FileText,
+  Mail,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { logoutUser } from "@/lib/store/slices/authSlice";
@@ -97,6 +99,18 @@ const navItems = [
     name: "Brand Setup",
     href: "/dashboard/brand",
     icon: Palette,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "About Page",
+    href: "/dashboard/brand/about",
+    icon: FileText,
+    access: ["TENANT_ADMIN"],
+  },
+  {
+    name: "Contact Page",
+    href: "/dashboard/brand/contact",
+    icon: Mail,
     access: ["TENANT_ADMIN"],
   },
   {
