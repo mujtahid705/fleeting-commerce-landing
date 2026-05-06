@@ -15,6 +15,7 @@ import tenantAdminsReducer from "./slices/tenantAdminsSlice";
 import brandReducer from "./slices/brandSlice";
 import notificationsReducer from "./slices/notificationsSlice";
 import offersReducer from "./slices/offersSlice";
+import reviewsReducer from "./slices/reviewsSlice";
 
 const appReducer = combineReducers({
   auth: authReducer,
@@ -33,6 +34,7 @@ const appReducer = combineReducers({
   brand: brandReducer,
   notifications: notificationsReducer,
   offers: offersReducer,
+  reviews: reviewsReducer,
 });
 
 const rootReducer: typeof appReducer = (state, action) => {

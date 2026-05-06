@@ -165,19 +165,34 @@ export default function InventoryPage() {
     {
       key: "product",
       header: "Product",
-      render: (item: InventoryItem) => (
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-            <Package size={18} className="text-gray-500" />
+      render: (item: InventoryItem) => {
+        const imageUrl = item.product?.images?.[0]?.imageUrl;
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden border border-gray-200">
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={item.product?.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Package size={18} className="text-gray-400" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-foreground truncate">
+                {item.product?.title || "Unknown Product"}
+              </p>
+              <p className="text-xs text-muted truncate">
+                {item.product?.price != null
+                  ? `৳${item.product.price.toLocaleString()}`
+                  : item.productId}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="font-medium text-foreground truncate">
-              {item.product?.title || "Unknown Product"}
-            </p>
-            <p className="text-xs text-muted truncate">{item.productId}</p>
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: "quantity",

@@ -28,6 +28,7 @@ import {
   clearSelectedOrder,
   clearError,
 } from "@/lib/store/slices/ordersSlice";
+import { fetchProducts } from "@/lib/store/slices/productsSlice";
 import { Order, OrderStatus } from "@/lib/types/orders";
 
 const statusConfig: Record<OrderStatus, { label: string; style: string }> = {
@@ -43,16 +44,18 @@ export default function OrdersPage() {
   const { showToast } = useToast();
   const { orders, selectedOrder, isLoading, isSubmitting, error } =
     useAppSelector((state) => state.orders);
+  const { products } = useAppSelector((state) => state.products);
   const { user } = useAppSelector((state) => state.auth);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  // Fetch orders on mount
+  // Fetch orders and products on mount
   useEffect(() => {
     if (user?.role === "TENANT_ADMIN" || user?.role === "SUPER_ADMIN") {
       dispatch(fetchOrders());
+      dispatch(fetchProducts());
     }
   }, [dispatch, user?.role]);
 
@@ -297,6 +300,7 @@ export default function OrdersPage() {
         order={selectedOrder}
         onStatusChange={handleStatusChange}
         isSubmitting={isSubmitting}
+        products={products}
       />
     </>
   );
