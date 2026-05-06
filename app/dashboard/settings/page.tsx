@@ -9,12 +9,15 @@ import {
   Palette,
   Globe,
   Mail,
+  Phone,
+  User,
   Save,
 } from "lucide-react";
 import PageHeader from "@/components/dashboard/PageHeader";
 import PageCard from "@/components/dashboard/PageCard";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { useAppSelector } from "@/lib/store/hooks";
 
 const tabs = [
   { id: "general", label: "General", icon: Store },
@@ -25,14 +28,33 @@ const tabs = [
   { id: "domains", label: "Domains", icon: Globe },
 ];
 
+function ReadOnlyField({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value?: string | null;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div className="w-full">
+      <label className="block text-sm font-medium text-foreground mb-2">
+        {label}
+      </label>
+      <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50">
+        {icon && <span className="text-muted shrink-0">{icon}</span>}
+        <span className={value ? "text-foreground" : "text-muted italic"}>
+          {value || "Not set"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
-  const [storeName, setStoreName] = useState("My Awesome Store");
-  const [storeEmail, setStoreEmail] = useState("store@example.com");
-  const [storePhone, setStorePhone] = useState("+1 (555) 123-4567");
-  const [storeAddress, setStoreAddress] = useState(
-    "123 Commerce St, Business City, 12345"
-  );
+  const { user, tenant } = useAppSelector((s) => s.auth);
 
   return (
     <>
@@ -67,70 +89,56 @@ export default function SettingsPage() {
         <div className="lg:col-span-3">
           {/* General Settings */}
           {activeTab === "general" && (
-            <PageCard title="Store Information">
-              <div className="space-y-6">
-                {/* Store Logo */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Store Logo
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-2xl font-bold">
-                      MS
-                    </div>
-                    <div>
-                      <Button variant="outline" size="sm">
-                        Change Logo
-                      </Button>
-                      <p className="text-xs text-muted mt-2">
-                        Recommended: 512x512px, PNG or JPG
-                      </p>
-                    </div>
+            <div className="space-y-6">
+              <PageCard title="Store Information">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ReadOnlyField
+                      label="Store Name"
+                      value={tenant?.name}
+                      icon={<Store size={18} />}
+                    />
+                    <ReadOnlyField
+                      label="Store Domain"
+                      value={tenant?.domain ? `${tenant.domain}.fleetingcommerce.com` : undefined}
+                      icon={<Globe size={18} />}
+                    />
                   </div>
+                  <p className="text-xs text-muted">
+                    To change store name or domain, go to{" "}
+                    <a href="/dashboard/brand" className="text-primary hover:underline">
+                      Brand Settings
+                    </a>
+                    .
+                  </p>
                 </div>
+              </PageCard>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Input
-                    label="Store Name"
-                    value={storeName}
-                    onChange={(e) => setStoreName(e.target.value)}
-                    icon={<Store size={18} />}
+              <PageCard title="Account Information">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ReadOnlyField
+                      label="Full Name"
+                      value={user?.name}
+                      icon={<User size={18} />}
+                    />
+                    <ReadOnlyField
+                      label="Email Address"
+                      value={user?.email}
+                      icon={<Mail size={18} />}
+                    />
+                  </div>
+                  <ReadOnlyField
+                    label="Phone Number"
+                    value={user?.phone}
+                    icon={<Phone size={18} />}
                   />
-                  <Input
-                    label="Contact Email"
-                    type="email"
-                    value={storeEmail}
-                    onChange={(e) => setStoreEmail(e.target.value)}
-                    icon={<Mail size={18} />}
-                  />
+                  <p className="text-xs text-muted">
+                    Contact support to update account details.
+                  </p>
                 </div>
-
-                <Input
-                  label="Phone Number"
-                  value={storePhone}
-                  onChange={(e) => setStorePhone(e.target.value)}
-                />
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Store Address
-                  </label>
-                  <textarea
-                    value={storeAddress}
-                    onChange={(e) => setStoreAddress(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button className="flex items-center gap-2">
-                    <Save size={18} />
-                    Save Changes
-                  </Button>
-                </div>
-              </div>
-            </PageCard>
+              </PageCard>
+            </div>
           )}
 
           {/* Notifications Settings */}
@@ -353,13 +361,17 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-foreground">
-                        mystore.fleetingcommerce.com
+                        {tenant?.domain
+                          ? `${tenant.domain}.fleetingcommerce.com`
+                          : "No domain configured"}
                       </p>
                       <p className="text-sm text-muted">Default subdomain</p>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                      Active
-                    </span>
+                    {tenant?.domain && (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        Active
+                      </span>
+                    )}
                   </div>
                 </div>
 

@@ -210,6 +210,12 @@ const authSlice = createSlice({
         state.tenant.brandSetupCompleted = true;
       }
     },
+    setTenantDomain: (state, action: PayloadAction<string>) => {
+      if (state.tenant) {
+        state.tenant.domain = action.payload;
+        state.tenant.brandSetupCompleted = true;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -341,5 +347,6 @@ export const {
   setUser,
   resetSessionValidated,
   setBrandSetupCompleted,
+  setTenantDomain,
 } = authSlice.actions;
 export default authSlice.reducer;

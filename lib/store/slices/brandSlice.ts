@@ -8,6 +8,8 @@ import {
   ExclusiveSection,
   FeaturedCategoriesSection,
   FooterSection,
+  AboutPageSection,
+  ContactPageSection,
 } from "@/lib/types/brand";
 
 const initialState: BrandState = {
@@ -67,6 +69,12 @@ export const upsertBrand = createAsyncThunk(
       exclusiveSection?: ExclusiveSection;
       featuredCategories?: FeaturedCategoriesSection;
       footer?: FooterSection;
+      aboutPage?: AboutPageSection;
+      contactPage?: ContactPageSection;
+      aboutHeroImage?: File;
+      aboutStoryImage?: File;
+      aboutTeamImages?: File[];
+      contactMapImage?: File;
     },
     { rejectWithValue }
   ) => {
@@ -102,6 +110,18 @@ export const upsertBrand = createAsyncThunk(
           JSON.stringify(data.featuredCategories)
         );
       if (data.footer) formData.append("footer", JSON.stringify(data.footer));
+      if (data.aboutPage)
+        formData.append("aboutPage", JSON.stringify(data.aboutPage));
+      if (data.contactPage)
+        formData.append("contactPage", JSON.stringify(data.contactPage));
+      if (data.aboutHeroImage)
+        formData.append("aboutHeroImage", data.aboutHeroImage);
+      if (data.aboutStoryImage)
+        formData.append("aboutStoryImage", data.aboutStoryImage);
+      if (data.aboutTeamImages)
+        data.aboutTeamImages.forEach((f) => formData.append("aboutTeamImages", f));
+      if (data.contactMapImage)
+        formData.append("contactMapImage", data.contactMapImage);
 
       const response = await api.post("/tenant-brand", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -131,6 +151,12 @@ export const updateBrand = createAsyncThunk(
       exclusiveSection?: ExclusiveSection;
       featuredCategories?: FeaturedCategoriesSection;
       footer?: FooterSection;
+      aboutPage?: AboutPageSection;
+      contactPage?: ContactPageSection;
+      aboutHeroImage?: File;
+      aboutStoryImage?: File;
+      aboutTeamImages?: File[];
+      contactMapImage?: File;
     },
     { rejectWithValue }
   ) => {
@@ -165,6 +191,18 @@ export const updateBrand = createAsyncThunk(
           JSON.stringify(data.featuredCategories)
         );
       if (data.footer) formData.append("footer", JSON.stringify(data.footer));
+      if (data.aboutPage)
+        formData.append("aboutPage", JSON.stringify(data.aboutPage));
+      if (data.contactPage)
+        formData.append("contactPage", JSON.stringify(data.contactPage));
+      if (data.aboutHeroImage)
+        formData.append("aboutHeroImage", data.aboutHeroImage);
+      if (data.aboutStoryImage)
+        formData.append("aboutStoryImage", data.aboutStoryImage);
+      if (data.aboutTeamImages)
+        data.aboutTeamImages.forEach((f) => formData.append("aboutTeamImages", f));
+      if (data.contactMapImage)
+        formData.append("contactMapImage", data.contactMapImage);
 
       const response = await api.patch("/tenant-brand", formData, {
         headers: { "Content-Type": "multipart/form-data" },

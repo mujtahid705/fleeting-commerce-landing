@@ -32,6 +32,29 @@ import {
 
 type Step = "email" | "verify";
 
+const COUNTRY_CODES = [
+  { code: "BD", dialCode: "+880", flag: "🇧🇩", name: "Bangladesh" },
+  { code: "US", dialCode: "+1",   flag: "🇺🇸", name: "United States" },
+  { code: "GB", dialCode: "+44",  flag: "🇬🇧", name: "United Kingdom" },
+  { code: "IN", dialCode: "+91",  flag: "🇮🇳", name: "India" },
+  { code: "PK", dialCode: "+92",  flag: "🇵🇰", name: "Pakistan" },
+  { code: "AE", dialCode: "+971", flag: "🇦🇪", name: "UAE" },
+  { code: "SA", dialCode: "+966", flag: "🇸🇦", name: "Saudi Arabia" },
+  { code: "MY", dialCode: "+60",  flag: "🇲🇾", name: "Malaysia" },
+  { code: "SG", dialCode: "+65",  flag: "🇸🇬", name: "Singapore" },
+  { code: "AU", dialCode: "+61",  flag: "🇦🇺", name: "Australia" },
+  { code: "CA", dialCode: "+1",   flag: "🇨🇦", name: "Canada" },
+  { code: "DE", dialCode: "+49",  flag: "🇩🇪", name: "Germany" },
+  { code: "FR", dialCode: "+33",  flag: "🇫🇷", name: "France" },
+  { code: "NG", dialCode: "+234", flag: "🇳🇬", name: "Nigeria" },
+  { code: "GH", dialCode: "+233", flag: "🇬🇭", name: "Ghana" },
+  { code: "KE", dialCode: "+254", flag: "🇰🇪", name: "Kenya" },
+  { code: "ID", dialCode: "+62",  flag: "🇮🇩", name: "Indonesia" },
+  { code: "PH", dialCode: "+63",  flag: "🇵🇭", name: "Philippines" },
+  { code: "TR", dialCode: "+90",  flag: "🇹🇷", name: "Turkey" },
+  { code: "EG", dialCode: "+20",  flag: "🇪🇬", name: "Egypt" },
+];
+
 interface FormErrors {
   email?: string;
   otp?: string;
@@ -65,7 +88,8 @@ export default function SignupForm() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [dialCode, setDialCode] = useState("+880");
+  const [phoneLocal, setPhoneLocal] = useState("");
   const [storeName, setStoreName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -149,10 +173,10 @@ export default function SignupForm() {
       errors.name = "Name must be at least 2 characters";
     }
 
-    if (!phone) {
+    if (!phoneLocal.trim()) {
       errors.phone = "Phone number is required";
-    } else if (!/^\+?[0-9]{10,15}$/.test(phone.replace(/\s/g, ""))) {
-      errors.phone = "Please enter a valid phone number";
+    } else if (!/^[0-9]{6,14}$/.test(phoneLocal.replace(/\s/g, ""))) {
+      errors.phone = "Enter digits only, 6–14 numbers";
     }
 
     if (!storeName.trim()) {
@@ -214,7 +238,7 @@ export default function SignupForm() {
         otp,
         name: name.trim(),
         password,
-        phone: phone.replace(/\s/g, ""),
+        phone: `${dialCode}${phoneLocal.replace(/\s/g, "")}`,
         tenantName: storeName.trim(),
       })
     );
@@ -458,16 +482,41 @@ export default function SignupForm() {
                   disabled={isSubmitting}
                 />
 
-                <Input
-                  label="Phone Number"
-                  type="tel"
-                  placeholder="+8801XXXXXXXXX"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  error={formErrors.phone}
-                  icon={<Phone size={20} />}
-                  disabled={isSubmitting}
-                />
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Phone Number
+                  </label>
+                  <div className={`flex rounded-xl border ${formErrors.phone ? "border-red-400" : "border-gray-200"} overflow-hidden focus-within:ring-2 ${formErrors.phone ? "focus-within:ring-red-200 focus-within:border-red-400" : "focus-within:ring-primary/20 focus-within:border-primary"} transition-all duration-200`}>
+                    <select
+                      value={dialCode}
+                      onChange={(e) => setDialCode(e.target.value)}
+                      disabled={isSubmitting}
+                      className="shrink-0 bg-gray-50 border-r border-gray-200 px-3 py-3 text-sm text-foreground focus:outline-none cursor-pointer"
+                    >
+                      {COUNTRY_CODES.map((c) => (
+                        <option key={c.code + c.dialCode} value={c.dialCode}>
+                          {c.flag} {c.dialCode} ({c.name})
+                        </option>
+                      ))}
+                    </select>
+                    <div className="relative flex-1">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                        <Phone size={18} />
+                      </div>
+                      <input
+                        type="tel"
+                        placeholder="1XXXXXXXXX"
+                        value={phoneLocal}
+                        onChange={(e) => setPhoneLocal(e.target.value.replace(/[^\d\s]/g, ""))}
+                        disabled={isSubmitting}
+                        className="w-full pl-10 pr-4 py-3 bg-white text-foreground placeholder:text-muted focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  {formErrors.phone && (
+                    <p className="mt-2 text-sm text-red-500">{formErrors.phone}</p>
+                  )}
+                </div>
 
                 <Input
                   label="Store Name"

@@ -29,6 +29,7 @@ import {
   upsertBrand,
   checkDomainUniqueness,
 } from "@/lib/store/slices/brandSlice";
+import { setTenantDomain } from "@/lib/store/slices/authSlice";
 import { THEME_PREVIEWS } from "@/lib/types/brand";
 
 interface BrandFormData {
@@ -63,6 +64,14 @@ const themes = [
     previewUrl: THEME_PREVIEWS[3].previewUrl,
     gradient: "from-gray-600 to-gray-800",
     icon: "🌿",
+  },
+  {
+    id: 4,
+    name: "Editorial Boutique",
+    description: "Refined editorial layout for boutique brand storytelling",
+    previewUrl: THEME_PREVIEWS[4].previewUrl,
+    gradient: "from-rose-400 to-pink-600",
+    icon: "🌸",
   },
 ];
 
@@ -242,6 +251,7 @@ export default function BrandSetupPage() {
             tenantId: brandResult.tenantId,
           }),
         );
+        dispatch(setTenantDomain(brandResult.domain));
       }
 
       showToast({
