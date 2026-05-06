@@ -213,7 +213,6 @@ const authSlice = createSlice({
     setTenantDomain: (state, action: PayloadAction<string>) => {
       if (state.tenant) {
         state.tenant.domain = action.payload;
-        state.tenant.brandSetupCompleted = true;
       }
     },
   },

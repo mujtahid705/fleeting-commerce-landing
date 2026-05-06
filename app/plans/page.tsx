@@ -18,6 +18,7 @@ import {
   setSelectedPlanId,
   Plan,
 } from "@/lib/store/slices/plansSlice";
+import { validateSession } from "@/lib/store/slices/authSlice";
 
 interface PlanFeature {
   text: string;
@@ -159,6 +160,7 @@ function PlansPageInner() {
           title: "Trial Activated!",
           message: `Your ${plan.trialDays}-day free trial has started.`,
         });
+        await dispatch(validateSession());
         router.push("/brand-setup");
       }
       return;
